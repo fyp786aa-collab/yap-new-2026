@@ -1,0 +1,76 @@
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
+import { APP_NAME } from "@/lib/constants";
+import { GraduationCap } from "lucide-react";
+
+export default async function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+  if (session?.user) {
+    redirect(ROUTES.DASHBOARD.HOME);
+  }
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Left panel - branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-yap-primary relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-yap-accent)_0%,_transparent_50%)] opacity-20" />
+        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
+          <div className="animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-yap-accent flex items-center justify-center">
+                <GraduationCap className="w-7 h-7 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold leading-tight mb-4">
+              Young Ambassador
+              <br />
+              Programme 2026
+            </h1>
+            <p className="text-lg text-white/70 max-w-md leading-relaxed">
+              Gain hands-on professional experience through internship
+              placements with AKDN agencies across Gilgit-Baltistan and Chitral.
+            </p>
+          </div>
+          <div
+            className="mt-16 space-y-4 animate-fade-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="flex items-center gap-3 text-white/60">
+              <div className="w-2 h-2 rounded-full bg-yap-accent" />
+              <span>6–8 week internship placements</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/60">
+              <div className="w-2 h-2 rounded-full bg-yap-accent" />
+              <span>6 AKDN agencies to choose from</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/60">
+              <div className="w-2 h-2 rounded-full bg-yap-accent" />
+              <span>Professional development & mentoring</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel - form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-gray-50">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
+            <div className="w-10 h-10 rounded-xl bg-yap-primary flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-lg font-bold text-yap-primary">
+              {APP_NAME}
+            </span>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}

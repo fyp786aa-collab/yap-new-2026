@@ -1,0 +1,200 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) DEFAULT 'applicant'
+        CHECK (role IN ('applicant','reviewer','admin')),
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_verify_token TEXT,
+    email_verify_expires TIMESTAMPTZ,
+    reset_password_token TEXT,
+    reset_password_expires TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE applicants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    full_name VARCHAR(150) NOT NULL,
+    father_name VARCHAR(150) NOT NULL,
+    gender VARCHAR(10) NOT NULL
+        CHECK (gender IN ('Male','Female','Other')),
+    date_of_birth DATE NOT NULL,
+    cnic VARCHAR(15) UNIQUE NOT NULL,
+    primary_contact VARCHAR(20) NOT NULL,
+    whatsapp_number VARCHAR(20),
+    email VARCHAR(100) NOT NULL,
+    city_of_residence VARCHAR(100),
+    hometown VARCHAR(100),
+    permanent_address TEXT,
+    current_address TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+CREATE TABLE applications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    applicant_id UUID NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    cohort_year SMALLINT NOT NULL DEFAULT 2026,
+    status VARCHAR(20) DEFAULT 'Draft'
+        CHECK (status IN ('Draft','Submitted','Under Review','Shortlisted','Selected','Rejected')),
+    last_saved_at TIMESTAMPTZ DEFAULT NOW(),
+    submitted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    UNIQUE (applicant_id, cohort_year)
+);
+CREATE TABLE location_info (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    regional_council VARCHAR(100),
+    local_council VARCHAR(100),
+    jamatkhana VARCHAR(150),
+    has_relatives_in_gilgit_chitral BOOLEAN DEFAULT FALSE,
+    relatives_address TEXT,
+    relatives_contact VARCHAR(20)
+);
+CREATE TABLE emergency_contacts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    relationship VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL
+);
+CREATE TABLE academic_background (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    university_name VARCHAR(200),
+    degree_program VARCHAR(200),
+    major_specialization VARCHAR(150),
+    current_year_of_study SMALLINT CHECK (current_year_of_study BETWEEN 1 AND 4),
+    cgpa_percentage DECIMAL(5,2),
+    transcript_file_path VARCHAR(500),
+    expected_graduation_month SMALLINT CHECK (expected_graduation_month BETWEEN 1 AND 12),
+    expected_graduation_year SMALLINT,
+    re_education_level VARCHAR(20)
+        CHECK (re_education_level IN ('Others','Matric','HRE','ARE'))
+);
+CREATE TABLE placement_readiness (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    willing_gilgit_chitral BOOLEAN,
+    stayed_away_before BOOLEAN,
+    stay_away_description TEXT,
+    medical_conditions TEXT
+);
+CREATE TABLE internship_preferences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    agency VARCHAR(60) NOT NULL
+        CHECK (agency IN ('AKESP','AKHS','AKRSP','AKAH','Sarena Hotels','Accelerate Prosperity')),
+    priority_rank SMALLINT NOT NULL CHECK (priority_rank BETWEEN 1 AND 6),
+    UNIQUE (application_id, agency),
+    UNIQUE (application_id, priority_rank)
+);
+CREATE TABLE skills_competencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    communication SMALLINT CHECK (communication BETWEEN 1 AND 5),
+    team_collaboration SMALLINT CHECK (team_collaboration BETWEEN 1 AND 5),
+    problem_solving SMALLINT CHECK (problem_solving BETWEEN 1 AND 5),
+    adaptability SMALLINT CHECK (adaptability BETWEEN 1 AND 5),
+    leadership SMALLINT CHECK (leadership BETWEEN 1 AND 5),
+    report_writing SMALLINT CHECK (report_writing BETWEEN 1 AND 5),
+    microsoft_office SMALLINT CHECK (microsoft_office BETWEEN 1 AND 5),
+    research_documentation SMALLINT CHECK (research_documentation BETWEEN 1 AND 5),
+    community_engagement SMALLINT CHECK (community_engagement BETWEEN 1 AND 5),
+    additional_skills TEXT
+);
+CREATE TABLE experience_engagement (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    description TEXT
+);
+CREATE TABLE motivation_alignment (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    essay_response TEXT
+);
+CREATE TABLE availability_commitment (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID UNIQUE NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    available_july_aug_2026 BOOLEAN
+);
+CREATE TABLE documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    document_type VARCHAR(20) NOT NULL
+        CHECK (document_type IN ('CV','Transcript','Video')),
+    file_path VARCHAR(500) NOT NULL,
+    file_name VARCHAR(255),
+    uploaded_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE application_references (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    reference_type VARCHAR(30) NOT NULL
+        CHECK (reference_type IN ('Academic','Supervisor_Volunteer')),
+    name VARCHAR(150) NOT NULL,
+    position VARCHAR(150),
+    contact_number VARCHAR(20),
+    email VARCHAR(100)
+);
+CREATE TABLE reviewers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE review_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    reviewer_id UUID NOT NULL REFERENCES reviewers(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ,
+    UNIQUE (application_id, reviewer_id)
+);
+CREATE TABLE review_scores (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assignment_id UUID NOT NULL UNIQUE REFERENCES review_assignments(id) ON DELETE CASCADE,
+
+    academic_score SMALLINT CHECK (academic_score BETWEEN 0 AND 15),
+    adaptability_score SMALLINT CHECK (adaptability_score BETWEEN 0 AND 18),
+    skills_score SMALLINT CHECK (skills_score BETWEEN 0 AND 10),
+    experience_score SMALLINT CHECK (experience_score BETWEEN 0 AND 20),
+    motivation_score SMALLINT CHECK (motivation_score BETWEEN 0 AND 25),
+    cv_score SMALLINT CHECK (cv_score BETWEEN 0 AND 7),
+    video_score SMALLINT CHECK (video_score BETWEEN 0 AND 5),
+
+    total_score SMALLINT GENERATED ALWAYS AS (
+        COALESCE(academic_score,0) +
+        COALESCE(adaptability_score,0) +
+        COALESCE(skills_score,0) +
+        COALESCE(experience_score,0) +
+        COALESCE(motivation_score,0) +
+        COALESCE(cv_score,0) +
+        COALESCE(video_score,0)
+    ) STORED,
+
+    final_decision VARCHAR(30)
+        CHECK (final_decision IN ('Highly Recommended','Recommended','Waitlist','Not Recommended')),
+
+    reviewer_notes TEXT,
+    submitted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+CREATE TABLE cv_scoring_breakdown (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    review_score_id UUID NOT NULL UNIQUE REFERENCES review_scores(id) ON DELETE CASCADE,
+
+    clear_structure SMALLINT CHECK (clear_structure BETWEEN 0 AND 2),
+    relevant_experiences SMALLINT CHECK (relevant_experiences BETWEEN 0 AND 2),
+    professional_writing SMALLINT CHECK (professional_writing BETWEEN 0 AND 1),
+    initiative_leadership SMALLINT CHECK (initiative_leadership BETWEEN 0 AND 1),
+    overall_professionalism SMALLINT CHECK (overall_professionalism BETWEEN 0 AND 1)
+);

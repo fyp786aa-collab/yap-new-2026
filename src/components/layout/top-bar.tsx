@@ -1,0 +1,57 @@
+"use client";
+
+import { signOut } from "next-auth/react";
+import { Badge } from "@/components/ui/badge";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { ButtonPrimary } from "@/components/ui/button-primary";
+import { LogOut, User } from "lucide-react";
+import type { ApplicationStatus } from "@/types";
+
+const STATUS_COLORS: Record<ApplicationStatus, string> = {
+  Draft: "bg-amber-100 text-amber-700 border-amber-200",
+  Submitted: "bg-yap-accent/10 text-yap-accent border-yap-accent/20",
+  "Under Review": "bg-blue-100 text-blue-700 border-blue-200",
+  Shortlisted: "bg-purple-100 text-purple-700 border-purple-200",
+  Selected: "bg-green-100 text-green-700 border-green-200",
+  Rejected: "bg-red-100 text-red-700 border-red-200",
+};
+
+interface TopBarProps {
+  userEmail: string;
+  applicationStatus: ApplicationStatus;
+}
+
+export function TopBar({ userEmail, applicationStatus }: TopBarProps) {
+  return (
+    <header className="flex items-center justify-between h-14 border-b bg-white px-4">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger />
+        <Separator orientation="vertical" className="h-5" />
+        <Badge
+          variant="outline"
+          className={`text-xs font-medium ${STATUS_COLORS[applicationStatus]}`}
+        >
+          {applicationStatus}
+        </Badge>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+          <User className="w-4 h-4" />
+          <span className="max-w-[180px] truncate">{userEmail}</span>
+        </div>
+        <Separator orientation="vertical" className="h-5 hidden sm:block" />
+        <ButtonPrimary
+          variant="ghost"
+          size="sm"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden sm:inline ml-1">Logout</span>
+        </ButtonPrimary>
+      </div>
+    </header>
+  );
+}
