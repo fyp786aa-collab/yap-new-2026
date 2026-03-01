@@ -10,17 +10,12 @@ export async function createApplicant(
     const rows = await sql`
       INSERT INTO applicants (user_id, email)
       VALUES (${userId}, ${email.toLowerCase()})
+      ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email
       RETURNING *
     `;
     return { success: true, data: rows[0] as Applicant };
   } catch (error: unknown) {
     console.error("Error creating applicant:", error);
-    const pgError = error as { code?: string };
-    if (pgError.code === "23505") {
-      // Already exists - fetch and return
-      const existing = await getApplicantByUserId(userId);
-      if (existing) return { success: true, data: existing };
-    }
     return { success: false, error: "Failed to create applicant profile" };
   }
 }
