@@ -30,7 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.variable} font-sans antialiased`}>
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-        <Toaster position="top-right" richColors closeButton duration={4000} />
+        <Toaster position="top-right" richColors duration={4000} />
       </body>
     </html>
   );

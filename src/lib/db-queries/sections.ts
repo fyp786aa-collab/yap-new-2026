@@ -283,6 +283,25 @@ export async function getDocumentsByApplication(applicationId: string) {
   }
 }
 
+export async function deleteDocument(
+  applicationId: string,
+  documentType: string,
+): Promise<{ success: boolean; filePath?: string; error?: string }> {
+  const sql = getDb();
+  try {
+    const rows = await sql`
+      DELETE FROM documents
+      WHERE application_id = ${applicationId} AND document_type = ${documentType}
+      RETURNING file_path
+    `;
+    const filePath = (rows as any)[0]?.file_path ?? null;
+    return { success: true, filePath };
+  } catch (error) {
+    console.error("Error deleting document:", error);
+    return { success: false, error: "Failed to delete document" };
+  }
+}
+
 // ==================== REFERENCES ====================
 
 export async function upsertReference(

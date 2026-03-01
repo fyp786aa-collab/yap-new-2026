@@ -2,19 +2,19 @@ import { google } from "googleapis";
 import { Readable } from "stream";
 
 function getAuth() {
-  const keyBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!keyBase64) {
-    throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY is not set");
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      "Missing Google OAuth2 credentials. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN.",
+    );
   }
 
-  const keyJson = JSON.parse(
-    Buffer.from(keyBase64, "base64").toString("utf-8"),
-  );
-
-  return new google.auth.GoogleAuth({
-    credentials: keyJson,
-    scopes: ["https://www.googleapis.com/auth/drive.file"],
-  });
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
+  return oauth2Client;
 }
 
 function getDriveClient() {

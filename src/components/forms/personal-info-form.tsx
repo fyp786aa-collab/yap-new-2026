@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -70,40 +70,34 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
   const hasRelatives = watch("has_relatives_gilgit_chitral");
 
   const regionOptions = getRegionOptions();
-  const [localCouncilOptions, setLocalCouncilOptions] = useState<string[]>([]);
-  const [jamatkhanaOptions, setJamatkhanaOptions] = useState<string[]>([]);
+  const localCouncilOptions = useMemo(
+    () => (selectedRegion ? getLocalCouncilsByRegion(selectedRegion) : []),
+    [selectedRegion],
+  );
+  const jamatkhanaOptions = useMemo(
+    () =>
+      selectedLocalCouncil
+        ? getJamatkhanasByLocalCouncil(selectedLocalCouncil)
+        : [],
+    [selectedLocalCouncil],
+  );
   const isInitialMountRef = useRef(true);
 
+  // Clear dependent fields only when user changes region (not on initial mount)
   useEffect(() => {
-    // whenever regional council changes we update dependent options
-    if (selectedRegion) {
-      const councils = getLocalCouncilsByRegion(selectedRegion);
-      setLocalCouncilOptions(councils);
-      // Only clear dependent fields when user actually changes region, not on initial load
-      if (!isInitialMountRef.current) {
-        setValue("local_council", "");
-        setValue("jamatkhana", "");
-        setJamatkhanaOptions([]);
-      }
-    } else {
-      setLocalCouncilOptions([]);
-      setJamatkhanaOptions([]);
-      if (!isInitialMountRef.current) {
-        setValue("local_council", "");
-        setValue("jamatkhana", "");
-      }
+    if (!isInitialMountRef.current) {
+      setValue("local_council", "");
+      setValue("jamatkhana", "");
     }
   }, [selectedRegion, setValue]);
 
+  // Clear jamatkhana when local council changes (if current value not in new list)
   useEffect(() => {
-    if (selectedLocalCouncil) {
+    if (!isInitialMountRef.current && selectedLocalCouncil) {
       const jks = getJamatkhanasByLocalCouncil(selectedLocalCouncil);
-      setJamatkhanaOptions(jks);
-      if (!isInitialMountRef.current && !jks.includes(watch("jamatkhana"))) {
+      if (!jks.includes(watch("jamatkhana"))) {
         setValue("jamatkhana", "");
       }
-    } else {
-      setJamatkhanaOptions([]);
     }
   }, [selectedLocalCouncil, setValue, watch]);
 

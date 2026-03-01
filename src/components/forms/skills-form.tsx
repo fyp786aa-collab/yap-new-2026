@@ -28,7 +28,7 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<SkillsInput>({
     resolver: zodResolver(skillsSchema),
     defaultValues: {
@@ -110,7 +110,7 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
         />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

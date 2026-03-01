@@ -24,6 +24,7 @@ export const ROUTES = {
   },
   API: {
     UPLOAD: "/api/upload",
+    DELETE_UPLOAD: "/api/upload",
   },
 } as const;
 

@@ -46,12 +46,14 @@ export async function getApplicationByUserId(
 ): Promise<Application | null> {
   const sql = getDb();
   try {
-    const rows = await withRetry(() => sql`
+    const rows = await withRetry(
+      () => sql`
       SELECT a.* FROM applications a
       JOIN applicants ap ON a.applicant_id = ap.id
       WHERE ap.user_id = ${userId} AND a.cohort_year = ${COHORT_YEAR}
       LIMIT 1
-    `);
+    `,
+    );
     return rows.length > 0 ? (rows[0] as Application) : null;
   } catch (error) {
     console.error("Error fetching application by user:", error);

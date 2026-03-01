@@ -18,6 +18,18 @@ import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Separator } from "@/components/ui/separator";
 import { Save } from "lucide-react";
 
+async function deleteUploadedFile(applicationId: string, documentType: string) {
+  const res = await fetch(ROUTES.API.DELETE_UPLOAD, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ applicationId, documentType }),
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to remove file");
+  }
+}
+
 interface DocumentsFormProps {
   applicationId: string;
   defaultValues?: Partial<DocumentsInput>;
@@ -34,14 +46,15 @@ export function DocumentsForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [cvUploaded, setCvUploaded] = useState(!!existingCV);
-  const [transcriptUploaded, setTranscriptUploaded] = useState(!!existingTranscript);
+  const [transcriptUploaded, setTranscriptUploaded] =
+    useState(!!existingTranscript);
   const [cvError, setCvError] = useState("");
   const [transcriptError, setTranscriptError] = useState("");
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty: formIsDirty },
   } = useForm<DocumentsInput>({
     resolver: zodResolver(documentsSchema),
     defaultValues: {
@@ -65,7 +78,9 @@ export function DocumentsForm({
       hasFileError = true;
     }
     if (!transcriptUploaded) {
-      setTranscriptError("Academic transcript is required. Please upload your transcript.");
+      setTranscriptError(
+        "Academic transcript is required. Please upload your transcript.",
+      );
       hasFileError = true;
     }
     if (hasFileError) return;
@@ -117,7 +132,8 @@ export function DocumentsForm({
                 setCvUploaded(true);
                 setCvError("");
               }}
-              onRemove={() => {
+              onRemove={async () => {
+                await deleteUploadedFile(applicationId, "CV");
                 setCvUploaded(false);
               }}
             />
@@ -141,7 +157,8 @@ export function DocumentsForm({
                 setTranscriptUploaded(true);
                 setTranscriptError("");
               }}
-              onRemove={() => {
+              onRemove={async () => {
+                await deleteUploadedFile(applicationId, "Transcript");
                 setTranscriptUploaded(false);
               }}
             />
@@ -217,7 +234,11 @@ export function DocumentsForm({
         </div>
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary
+            type="submit"
+            loading={isLoading}
+            disabled={!formIsDirty && cvUploaded && transcriptUploaded}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

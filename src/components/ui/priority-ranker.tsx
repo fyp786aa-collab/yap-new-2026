@@ -60,26 +60,20 @@ export function PriorityRanker({
   const handleDragEnd = () => reset();
 
   // --- Touch handling for mobile ---
-  const getItemIndexAtY = useCallback(
-    (clientY: number): number | null => {
-      if (!listRef.current) return null;
-      const children = Array.from(listRef.current.children) as HTMLElement[];
-      for (let i = 0; i < children.length; i++) {
-        const rect = children[i].getBoundingClientRect();
-        if (clientY >= rect.top && clientY <= rect.bottom) return i;
-      }
-      return null;
-    },
-    [],
-  );
+  const getItemIndexAtY = useCallback((clientY: number): number | null => {
+    if (!listRef.current) return null;
+    const children = Array.from(listRef.current.children) as HTMLElement[];
+    for (let i = 0; i < children.length; i++) {
+      const rect = children[i].getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) return i;
+    }
+    return null;
+  }, []);
 
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent, index: number) => {
-      touchItemIndex.current = index;
-      setDragIndex(index);
-    },
-    [],
-  );
+  const handleTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    touchItemIndex.current = index;
+    setDragIndex(index);
+  }, []);
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {

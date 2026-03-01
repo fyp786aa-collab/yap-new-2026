@@ -15,6 +15,7 @@ import { SectionWrapper } from "@/components/forms/section-wrapper";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Save } from "lucide-react";
 
 interface PlacementFormProps {
@@ -30,7 +31,7 @@ export function PlacementForm({ defaultValues }: PlacementFormProps) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<PlacementInput>({
     resolver: zodResolver(placementSchema),
     defaultValues: {
@@ -103,20 +104,41 @@ export function PlacementForm({ defaultValues }: PlacementFormProps) {
             Have you stayed away from home before?{" "}
             <span className="text-red-500">*</span>
           </label>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="stayed_away"
-              checked={stayedAway}
-              onCheckedChange={(checked) =>
-                setValue("stayed_away_before", checked === true, {
-                  shouldValidate: true,
-                })
-              }
-            />
-            <label htmlFor="stayed_away" className="text-sm cursor-pointer">
-              Yes, I have stayed away from home before
-            </label>
-          </div>
+          <RadioGroup
+            value={
+              stayedAway === true ? "yes" : stayedAway === false ? "no" : ""
+            }
+            onValueChange={(val) =>
+              setValue("stayed_away_before", val === "yes", {
+                shouldValidate: true,
+              })
+            }
+            className="flex gap-6"
+          >
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="yes" id="stayed_away_yes" />
+              <label
+                htmlFor="stayed_away_yes"
+                className="text-sm cursor-pointer"
+              >
+                Yes
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="no" id="stayed_away_no" />
+              <label
+                htmlFor="stayed_away_no"
+                className="text-sm cursor-pointer"
+              >
+                No
+              </label>
+            </div>
+          </RadioGroup>
+          {errors.stayed_away_before && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.stayed_away_before.message}
+            </p>
+          )}
         </div>
 
         {stayedAway && (
@@ -140,7 +162,7 @@ export function PlacementForm({ defaultValues }: PlacementFormProps) {
         />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

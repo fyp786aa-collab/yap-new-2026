@@ -122,9 +122,10 @@ export default async function DashboardPage() {
             <div className="text-sm">
               <p className="font-medium text-amber-800">Important</p>
               <p className="text-amber-700 mt-1">
-                Your progress is saved automatically. You can close the browser
-                and return to complete your application at any time. Once
-                submitted, you cannot make further changes.
+                Remember to click <strong>Save &amp; Continue</strong> to save
+                your progress before leaving a section. You can close the
+                browser and return to complete your application at any time.
+                Once submitted, you cannot make further changes.
               </p>
             </div>
           </div>

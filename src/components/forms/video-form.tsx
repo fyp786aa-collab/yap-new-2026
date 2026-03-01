@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
@@ -10,15 +10,40 @@ import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, Video, AlertCircle } from "lucide-react";
 
+async function deleteUploadedFile(applicationId: string, documentType: string) {
+  const res = await fetch(ROUTES.API.DELETE_UPLOAD, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ applicationId, documentType }),
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to remove file");
+  }
+}
+
 interface VideoFormProps {
   applicationId: string;
   existingVideo?: { fileName: string; filePath: string } | null;
+}
+
+/** Extract Google Drive file ID from a Drive URL */
+function extractDriveFileId(url: string): string | null {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
 }
 
 export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [uploaded, setUploaded] = useState(!!existingVideo);
+  const [videoPath, setVideoPath] = useState(existingVideo?.filePath || "");
+
+  const previewUrl = useMemo(() => {
+    if (!videoPath) return null;
+    const fileId = extractDriveFileId(videoPath);
+    return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : null;
+  }, [videoPath]);
 
   async function onSave() {
     if (!uploaded) {
@@ -54,7 +79,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
                     Briefly introduce yourself and your motivation for YAP
                   </li>
                   <li>Speak clearly and face the camera</li>
-                  <li>Maximum file size: 200MB</li>
+                  <li>Maximum file size: 100MB</li>
                   <li>Accepted formats: MP4, MOV, AVI, WebM</li>
                 </ul>
               </div>
@@ -65,7 +90,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
         <FileUpload
           label="Introduction Video"
           accept=".mp4,.mov,.avi,.webm"
-          maxSize={200 * 1024 * 1024}
+          maxSize={100 * 1024 * 1024}
           uploadUrl={ROUTES.API.UPLOAD}
           uploadParams={{ applicationId, documentType: "Video" }}
           currentFile={
@@ -75,8 +100,34 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
           }
           required
           fileType="Video"
-          onUploadComplete={() => setUploaded(true)}
+          onUploadComplete={(fileInfo) => {
+            setUploaded(true);
+            if (fileInfo?.path) setVideoPath(fileInfo.path);
+          }}
+          onRemove={async () => {
+            await deleteUploadedFile(applicationId, "Video");
+            setUploaded(false);
+            setVideoPath("");
+          }}
         />
+
+        {/* Video Preview */}
+        {uploaded && previewUrl && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-yap-primary">
+              Video Preview
+            </h3>
+            <div className="rounded-lg overflow-hidden border border-gray-200 bg-black aspect-video">
+              <iframe
+                src={previewUrl}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                title="Video Preview"
+              />
+            </div>
+          </div>
+        )}
 
         {!uploaded && (
           <div className="flex items-center gap-2 text-sm text-amber-600">

@@ -158,7 +158,14 @@ export function ReviewContent({
               <Field label="Gender" value={app.gender as string} />
               <Field
                 label="Date of Birth"
-                value={app.date_of_birth as string}
+                value={
+                  app.date_of_birth
+                    ? new Date(app.date_of_birth as any).toLocaleDateString(
+                        "en-GB",
+                        { day: "2-digit", month: "short", year: "numeric" },
+                      )
+                    : ""
+                }
               />
               <Field label="CNIC" value={app.cnic as string} />
               <Field label="Email" value={app.email as string} />

@@ -46,7 +46,11 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
   ) => {
     const selectId = name || label.toLowerCase().replace(/\s+/g, "-");
     const [val, setVal] = useState<string>(
-      value != null && value !== "" ? String(value) : defaultValue != null && defaultValue !== "" ? String(defaultValue) : "",
+      value != null && value !== ""
+        ? String(value)
+        : defaultValue != null && defaultValue !== ""
+          ? String(defaultValue)
+          : "",
     );
 
     useEffect(() => {

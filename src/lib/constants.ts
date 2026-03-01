@@ -83,7 +83,7 @@ export const MONTHS = [
 export const MAX_FILE_SIZES = {
   CV: 5 * 1024 * 1024, // 5MB
   TRANSCRIPT: 10 * 1024 * 1024, // 10MB
-  VIDEO: 200 * 1024 * 1024, // 200MB
+  VIDEO: 100 * 1024 * 1024, // 100MB
 } as const;
 
 export const ALLOWED_FILE_TYPES = {

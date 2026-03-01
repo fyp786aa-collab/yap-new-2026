@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { saveInternshipPrefsAction } from "@/actions/application.actions";
@@ -29,6 +29,9 @@ export function InternshipPrefsForm({
 
   const [rankings, setRankings] =
     useState<Array<{ agency: string; priority_rank: number }>>(initialRankings);
+
+  const initialRef = useRef(JSON.stringify(initialRankings));
+  const isDirty = JSON.stringify(rankings) !== initialRef.current;
 
   async function onSubmit() {
     setIsLoading(true);
@@ -60,7 +63,11 @@ export function InternshipPrefsForm({
         <PriorityRanker items={rankings} onChange={setRankings} />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary onClick={onSubmit} loading={isLoading}>
+          <ButtonPrimary
+            onClick={onSubmit}
+            loading={isLoading}
+            disabled={!isDirty}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

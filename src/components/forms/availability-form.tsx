@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  availabilitySchema,
+  type AvailabilityInput,
+} from "@/lib/validations/availability";
 import { saveAvailabilityAction } from "@/actions/application.actions";
 import { ROUTES } from "@/lib/routes";
 import { SectionWrapper } from "@/components/forms/section-wrapper";
@@ -18,15 +24,26 @@ interface AvailabilityFormProps {
 export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [available, setAvailable] = useState(
-    defaultValues?.available_july_aug_2026 ?? false,
-  );
 
-  async function onSubmit() {
+  const {
+    setValue,
+    watch,
+    handleSubmit,
+    formState: { errors, isDirty },
+  } = useForm<AvailabilityInput>({
+    resolver: zodResolver(availabilitySchema),
+    defaultValues: {
+      available_july_aug_2026: defaultValues?.available_july_aug_2026 ?? false,
+    },
+  });
+
+  const available = watch("available_july_aug_2026");
+
+  async function onSubmit(data: AvailabilityInput) {
     setIsLoading(true);
     try {
       const result = await saveAvailabilityAction({
-        available_july_aug_2026: available,
+        available_july_aug_2026: data.available_july_aug_2026,
       });
       if (result.success) {
         toast.success("Availability confirmed!");
@@ -65,28 +82,40 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex items-start gap-3 p-4 rounded-lg border">
-          <Checkbox
-            id="available"
-            checked={available}
-            onCheckedChange={(checked) => setAvailable(checked === true)}
-            className="mt-0.5"
-          />
-          <label
-            htmlFor="available"
-            className="text-sm leading-relaxed cursor-pointer"
-          >
-            I confirm that I am available to participate in the Young Ambassador
-            Programme during <strong>July – August 2026</strong> and I commit to
-            completing the full duration of my internship placement.
-          </label>
+        <div>
+          <div className="flex items-start gap-3 p-4 rounded-lg border">
+            <Checkbox
+              id="available"
+              checked={available}
+              onCheckedChange={(checked) =>
+                setValue("available_july_aug_2026", checked === true, {
+                  shouldValidate: true,
+                })
+              }
+              className="mt-0.5"
+            />
+            <label
+              htmlFor="available"
+              className="text-sm leading-relaxed cursor-pointer"
+            >
+              I confirm that I am available to participate in the Young
+              Ambassador Programme during <strong>July – August 2026</strong>{" "}
+              and I commit to completing the full duration of my internship
+              placement.
+            </label>
+          </div>
+          {errors.available_july_aug_2026 && (
+            <p className="text-xs text-red-500 mt-2">
+              {errors.available_july_aug_2026.message}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end pt-4">
           <ButtonPrimary
-            onClick={onSubmit}
+            onClick={handleSubmit(onSubmit)}
             loading={isLoading}
-            disabled={!available}
+            disabled={!isDirty}
           >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue

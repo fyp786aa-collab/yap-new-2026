@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, X, FileText, Film } from "lucide-react";
+import { Upload, X, FileText, Film, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/lib/utils/formatters";
 import { ButtonPrimary } from "./button-primary";
@@ -15,8 +15,8 @@ interface FileUploadProps {
   onUpload?: (file: File) => Promise<void>;
   uploadUrl?: string;
   uploadParams?: Record<string, string>;
-  onUploadComplete?: () => void;
-  onRemove?: () => void;
+  onUploadComplete?: (fileInfo?: { name: string; path: string }) => void;
+  onRemove?: () => Promise<void> | void;
   loading?: boolean;
   fileType?: "CV" | "Transcript" | "Video";
   required?: boolean;
@@ -41,6 +41,8 @@ export function FileUpload({
   const [dragOver, setDragOver] = useState(false);
   const [localError, setLocalError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<{
     name: string;
     path: string;
@@ -71,6 +73,7 @@ export function FileUpload({
 
     if (uploadUrl) {
       setUploading(true);
+      setProgress(0);
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -79,18 +82,48 @@ export function FileUpload({
             formData.append(k, v),
           );
         }
-        const res = await fetch(uploadUrl, { method: "POST", body: formData });
-        const data = await res.json();
-        if (!res.ok) {
-          setLocalError(data.error || "Upload failed");
-          return;
-        }
+
+        const data = await new Promise<any>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", uploadUrl);
+
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+              const pct = Math.round((e.loaded / e.total) * 100);
+              setProgress(pct);
+            }
+          });
+
+          xhr.addEventListener("load", () => {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(json);
+              } else {
+                reject(new Error(json.error || "Upload failed"));
+              }
+            } catch {
+              reject(new Error("Upload failed"));
+            }
+          });
+
+          xhr.addEventListener("error", () =>
+            reject(new Error("Upload failed. Please try again.")),
+          );
+          xhr.addEventListener("abort", () =>
+            reject(new Error("Upload cancelled")),
+          );
+
+          xhr.send(formData);
+        });
+
         setUploadedFile({ name: file.name, path: data.filePath || "" });
-        onUploadComplete?.();
-      } catch {
-        setLocalError("Upload failed. Please try again.");
+        onUploadComplete?.({ name: file.name, path: data.filePath || "" });
+      } catch (err: any) {
+        setLocalError(err?.message || "Upload failed. Please try again.");
       } finally {
         setUploading(false);
+        setProgress(0);
       }
     } else if (onUpload) {
       await onUpload(file);
@@ -131,10 +164,25 @@ export function FileUpload({
           {onRemove && (
             <button
               type="button"
-              onClick={onRemove}
-              className="p-1.5 text-gray-400 hover:text-[#dc2626] transition-colors rounded-full hover:bg-red-50"
+              disabled={removing}
+              onClick={async () => {
+                setRemoving(true);
+                try {
+                  await onRemove();
+                  setUploadedFile(null);
+                } catch {
+                  // ignore – parent handles errors
+                } finally {
+                  setRemoving(false);
+                }
+              }}
+              className="p-1.5 text-gray-400 hover:text-[#dc2626] transition-colors rounded-full hover:bg-red-50 disabled:opacity-50"
             >
-              <X className="h-4 w-4" />
+              {removing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
             </button>
           )}
         </div>
@@ -188,8 +236,19 @@ export function FileUpload({
       )}
 
       {loading && (
-        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2 overflow-hidden">
-          <div className="bg-[#82a845] h-full rounded-full animate-shimmer w-2/3" />
+        <div className="mt-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-gray-500">Uploading...</span>
+            <span className="text-xs font-medium text-[#82a845]">
+              {progress}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-[#82a845] h-full rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       )}
     </div>

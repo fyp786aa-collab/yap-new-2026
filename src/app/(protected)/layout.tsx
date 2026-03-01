@@ -4,8 +4,6 @@ import { getApplicantByUserId } from "@/lib/db-queries/applicants";
 import { createApplicant } from "@/lib/db-queries/applicants";
 import { createApplication } from "@/lib/db-queries/applications";
 import { getSectionCompletion } from "@/lib/db-queries/applications";
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/lib/routes";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { SidebarProvider } from "@/components/ui/sidebar";

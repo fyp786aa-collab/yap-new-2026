@@ -5,7 +5,7 @@
 - Node.js 18+ and pnpm
 - Neon PostgreSQL database (tables pre-created)
 - Gmail account with App Password
-- Google Cloud service account with Drive API enabled
+- Google Cloud project with Drive API enabled (OAuth2 credentials)
 
 ## Quick Start
 
@@ -46,21 +46,24 @@ openssl rand -base64 32
 3. Set `GMAIL_USER` to your Gmail address
 4. Set `GMAIL_APP_PASSWORD` to the 16-character app password
 
-### Google Drive Setup
+### Google Drive Setup (OAuth2)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a project or use an existing one
 3. Enable the **Google Drive API**
-4. Go to **IAM & Admin → Service Accounts**
-5. Create a service account
-6. Create a JSON key for the service account
-7. Base64 encode the JSON key file:
-   ```bash
-   base64 -i service-account-key.json | tr -d '\n'
-   ```
-8. Set the result as `GOOGLE_SERVICE_ACCOUNT_KEY`
-9. Create a folder in Google Drive and share it with the service account email
-10. Copy the folder ID from the URL and set as `GOOGLE_DRIVE_FOLDER_ID`
+4. Go to **APIs & Services → Credentials**
+5. Click **Create Credentials → OAuth client ID**
+6. Choose **Web application** as the type
+7. Add `https://developers.google.com/oauthplayground` as an **Authorized redirect URI**
+8. Copy the **Client ID** and **Client Secret** → set as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+9. Go to [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+10. Click the ⚙️ gear icon (top right) → check **Use your own OAuth credentials** → paste your Client ID and Secret
+11. In Step 1, select **Google Drive API v3** → `https://www.googleapis.com/auth/drive.file`
+12. Click **Authorize APIs** and sign in with the Google account that owns the folder
+13. In Step 2, click **Exchange authorization code for tokens**
+14. Copy the **Refresh Token** → set as `GOOGLE_REFRESH_TOKEN`
+15. Create a folder in Google Drive for uploads
+16. Copy the folder ID from the URL (e.g., `https://drive.google.com/drive/folders/FOLDER_ID`) → set as `GOOGLE_DRIVE_FOLDER_ID`
 
 ## Database Schema
 

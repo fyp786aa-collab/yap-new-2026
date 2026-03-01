@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
-import { uploadFileToDrive } from "@/lib/google-drive";
-import { upsertDocument } from "@/lib/db-queries/sections";
+import { uploadFileToDrive, deleteFileFromDrive } from "@/lib/google-drive";
+import { upsertDocument, deleteDocument } from "@/lib/db-queries/sections";
 import { MAX_FILE_SIZES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
@@ -101,6 +101,72 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Upload error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const application = await getApplicationByUserId(session.user.id);
+    if (!application) {
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 },
+      );
+    }
+    if (application.status === "Submitted") {
+      return NextResponse.json(
+        { error: "Application already submitted" },
+        { status: 400 },
+      );
+    }
+
+    const { applicationId, documentType } = await request.json();
+
+    if (!applicationId || !documentType) {
+      return NextResponse.json(
+        { error: "Missing applicationId or documentType" },
+        { status: 400 },
+      );
+    }
+
+    if (applicationId !== application.id) {
+      return NextResponse.json(
+        { error: "Invalid application" },
+        { status: 403 },
+      );
+    }
+
+    const validTypes = ["CV", "Transcript", "Video"];
+    if (!validTypes.includes(documentType)) {
+      return NextResponse.json(
+        { error: "Invalid document type" },
+        { status: 400 },
+      );
+    }
+
+    // Delete from database and get the file path
+    const result = await deleteDocument(applicationId, documentType);
+
+    if (result.success && result.filePath) {
+      // Extract Google Drive file ID and delete from Drive
+      const match = result.filePath.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        await deleteFileFromDrive(match[1]);
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
