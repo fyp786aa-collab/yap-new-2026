@@ -1,8 +1,11 @@
 import { neon } from "@neondatabase/serverless";
-import type { NeonQueryInTransaction } from "@neondatabase/serverless";
+import type {
+  NeonQueryFunction,
+  NeonQueryInTransaction,
+} from "@neondatabase/serverless";
 
 // Cache the neon SQL client to avoid creating a new instance on every query
-let _sql: ReturnType<typeof neon> | null = null;
+let _sql: NeonQueryFunction<false, false> | null = null;
 
 /**
  * Get a Neon SQL client for parameterized queries
@@ -14,7 +17,7 @@ export function getDb() {
     if (!databaseUrl) {
       throw new Error("DATABASE_URL environment variable is not set");
     }
-    _sql = neon(databaseUrl);
+    _sql = neon(databaseUrl, { fullResults: false });
   }
   return _sql;
 }

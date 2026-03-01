@@ -116,7 +116,7 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
                   value: String(y.value),
                 }))}
                 error={errors.current_year_of_study?.message}
-                value={field.value}
+                value={field.value as string | number}
                 onChange={(e: any) => {
                   if (typeof e === "string") field.onChange(e);
                   else if (e?.target) field.onChange(e.target.value);
@@ -160,7 +160,7 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
                     value: String(m.value),
                   }))}
                   error={errors.expected_graduation_month?.message}
-                  value={field.value}
+                  value={field.value as string | number}
                   onChange={(e: any) => {
                     if (typeof e === "string") field.onChange(e);
                     else if (e?.target) field.onChange(e.target.value);
@@ -184,7 +184,7 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
                   required
                   options={yearOptions}
                   error={errors.expected_graduation_year?.message}
-                  value={field.value}
+                  value={field.value as string | number}
                   onChange={(e: any) => {
                     if (typeof e === "string") field.onChange(e);
                     else if (e?.target) field.onChange(e.target.value);
@@ -200,7 +200,7 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
         <Controller
           control={control}
           name="re_education_level"
-          defaultValue={defaultValues?.re_education_level ?? ""}
+          defaultValue={(defaultValues?.re_education_level ?? "") as any}
           render={({ field }) => (
             <FormSelect
               label="Religious Education Level"
@@ -210,7 +210,7 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
                 value: r.value,
               }))}
               error={errors.re_education_level?.message}
-              value={field.value}
+              value={field.value as string}
               onChange={(e: any) => {
                 if (typeof e === "string") field.onChange(e);
                 else if (e?.target) field.onChange(e.target.value);

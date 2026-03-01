@@ -158,7 +158,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                   value: g.value,
                 }))}
                 error={errors.gender?.message}
-                value={field.value}
+                value={field.value as string}
                 onChange={(e: any) => {
                   if (typeof e === "string") field.onChange(e);
                   else if (e?.target) field.onChange(e.target.value);
@@ -198,7 +198,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                     value: r.value,
                   }))}
                   error={errors.regional_council?.message}
-                  value={field.value}
+                  value={field.value as string}
                   onChange={(e: any) => {
                     if (typeof e === "string") field.onChange(e);
                     else if (e?.target) field.onChange(e.target.value);
@@ -222,7 +222,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                   }))}
                   error={errors.local_council?.message}
                   disabled={!selectedRegion}
-                  value={field.value}
+                  value={field.value as string}
                   onChange={(e: any) => {
                     if (typeof e === "string") field.onChange(e);
                     else if (e?.target) field.onChange(e.target.value);
@@ -247,7 +247,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                     }))}
                     error={errors.jamatkhana?.message}
                     disabled={!selectedLocalCouncil}
-                    value={field.value}
+                    value={field.value as string}
                     onChange={(e: any) => {
                       if (typeof e === "string") field.onChange(e);
                       else if (e?.target) field.onChange(e.target.value);
@@ -363,7 +363,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                     value: r,
                   }))}
                   error={errors.emergency_relationship?.message}
-                  value={field.value}
+                  value={field.value as string}
                   onChange={(e: any) => {
                     if (typeof e === "string") field.onChange(e);
                     else if (e?.target) field.onChange(e.target.value);

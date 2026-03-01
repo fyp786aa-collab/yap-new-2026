@@ -75,7 +75,7 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
               disableCopyPaste
               rows={8}
               error={errors.essay_response?.message}
-              value={field.value}
+              value={field.value as string}
               onChange={(e: any) => {
                 if (typeof e === "string") field.onChange(e);
                 else if (e?.target) field.onChange(e.target.value);
