@@ -10,7 +10,7 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ className, label, error, hint, id, ...props }, ref) => {
+  ({ className, label, error, hint, id, required, ...rest }, ref) => {
     const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
 
     return (
@@ -20,20 +20,20 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           className="block text-sm font-medium text-[#152232]"
         >
           {label}
-          {props.required && <span className="text-[#dc2626] ml-0.5">*</span>}
+          {required && <span className="text-[#dc2626] ml-0.5">*</span>}
         </label>
         <input
           ref={ref}
           id={inputId}
           className={cn(
-            "border border-gray-300 rounded-lg px-4 py-2.5 w-full transition-all duration-200",
+            "h-10 border border-gray-300 rounded-lg px-4 py-2 w-full transition-all duration-200",
             "focus:border-[#82a845] focus:ring-1 focus:ring-[#82a845] focus:outline-none",
             "placeholder:text-gray-400",
             error &&
               "border-[#dc2626] bg-[#fef2f2] focus:ring-[#dc2626] focus:border-[#dc2626]",
             className,
           )}
-          {...props}
+          {...rest}
         />
         {hint && !error && <p className="text-gray-500 text-xs mt-1">{hint}</p>}
         {error && (

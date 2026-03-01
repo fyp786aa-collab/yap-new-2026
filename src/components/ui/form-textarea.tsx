@@ -30,6 +30,7 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
   ) => {
     const textareaId = id || label.toLowerCase().replace(/\s+/g, "-");
     const currentWords = value ? countWords(value) : 0;
+    const isControlled = typeof value !== "undefined";
 
     const handlePaste = (e: React.ClipboardEvent) => {
       if (disableCopyPaste) e.preventDefault();
@@ -65,7 +66,7 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
         <textarea
           ref={ref}
           id={textareaId}
-          value={value}
+          {...(isControlled ? { value } : {})}
           onPaste={handlePaste}
           onCopy={handleCopy}
           className={cn(

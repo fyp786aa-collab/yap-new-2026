@@ -7,9 +7,14 @@ const wordCount = (text: string) => {
 
 export const placementSchema = z
   .object({
-    willing_gilgit_chitral: z.boolean({
-      error: "Please indicate your willingness",
-    }),
+    willing_gilgit_chitral: z
+      .boolean({
+        error: "Please indicate your willingness",
+      })
+      .refine((val) => val === true, {
+        message:
+          "You must confirm your willingness to be placed in Gilgit-Baltistan or Chitral",
+      }),
     stayed_away_before: z.boolean({
       error: "Please answer this question",
     }),

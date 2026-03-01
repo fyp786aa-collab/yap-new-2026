@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -35,7 +35,8 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    control,
+    formState: { errors, isDirty },
   } = useForm<PersonalInfoInput>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
@@ -71,12 +72,15 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
   const regionOptions = getRegionOptions();
   const [localCouncilOptions, setLocalCouncilOptions] = useState<string[]>([]);
   const [jamatkhanaOptions, setJamatkhanaOptions] = useState<string[]>([]);
+  const isInitialMountRef = useRef(true);
 
   useEffect(() => {
+    // whenever regional council changes we update dependent options
     if (selectedRegion) {
       const councils = getLocalCouncilsByRegion(selectedRegion);
       setLocalCouncilOptions(councils);
-      if (!councils.includes(watch("local_council"))) {
+      // Only clear dependent fields when user actually changes region, not on initial load
+      if (!isInitialMountRef.current) {
         setValue("local_council", "");
         setValue("jamatkhana", "");
         setJamatkhanaOptions([]);
@@ -84,20 +88,29 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
     } else {
       setLocalCouncilOptions([]);
       setJamatkhanaOptions([]);
+      if (!isInitialMountRef.current) {
+        setValue("local_council", "");
+        setValue("jamatkhana", "");
+      }
     }
-  }, [selectedRegion, setValue, watch]);
+  }, [selectedRegion, setValue]);
 
   useEffect(() => {
     if (selectedLocalCouncil) {
       const jks = getJamatkhanasByLocalCouncil(selectedLocalCouncil);
       setJamatkhanaOptions(jks);
-      if (!jks.includes(watch("jamatkhana"))) {
+      if (!isInitialMountRef.current && !jks.includes(watch("jamatkhana"))) {
         setValue("jamatkhana", "");
       }
     } else {
       setJamatkhanaOptions([]);
     }
   }, [selectedLocalCouncil, setValue, watch]);
+
+  // Mark initial mount complete after first render effects have run
+  useEffect(() => {
+    isInitialMountRef.current = false;
+  }, []);
 
   async function onSubmit(data: PersonalInfoInput) {
     setIsLoading(true);
@@ -138,15 +151,28 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
             error={errors.father_name?.message}
             {...register("father_name")}
           />
-          <FormSelect
-            label="Gender"
-            required
-            options={GENDER_OPTIONS.map((g) => ({
-              label: g.label,
-              value: g.value,
-            }))}
-            error={errors.gender?.message}
-            {...register("gender")}
+          <Controller
+            control={control}
+            name="gender"
+            defaultValue={defaultValues?.gender ?? "Male"}
+            render={({ field }) => (
+              <FormSelect
+                label="Gender"
+                required
+                options={GENDER_OPTIONS.map((g) => ({
+                  label: g.label,
+                  value: g.value,
+                }))}
+                error={errors.gender?.message}
+                value={field.value}
+                onChange={(e: any) => {
+                  if (typeof e === "string") field.onChange(e);
+                  else if (e?.target) field.onChange(e.target.value);
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            )}
           />
           <FormInput
             label="Date of Birth"
@@ -165,32 +191,77 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
             Regional & Council Information
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormSelect
-              label="Regional Council"
-              required
-              options={regionOptions.map((r) => ({
-                label: r.label,
-                value: r.value,
-              }))}
-              error={errors.regional_council?.message}
-              {...register("regional_council")}
+            <Controller
+              control={control}
+              name="regional_council"
+              defaultValue={defaultValues?.regional_council ?? ""}
+              render={({ field }) => (
+                <FormSelect
+                  label="Regional Council"
+                  required
+                  options={regionOptions.map((r) => ({
+                    label: r.label,
+                    value: r.value,
+                  }))}
+                  error={errors.regional_council?.message}
+                  value={field.value}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
-            <FormSelect
-              label="Local Council"
-              required
-              options={localCouncilOptions.map((c) => ({ label: c, value: c }))}
-              error={errors.local_council?.message}
-              disabled={!selectedRegion}
-              {...register("local_council")}
+            <Controller
+              control={control}
+              name="local_council"
+              defaultValue={defaultValues?.local_council ?? ""}
+              render={({ field }) => (
+                <FormSelect
+                  label="Local Council"
+                  required
+                  options={localCouncilOptions.map((c) => ({
+                    label: c,
+                    value: c,
+                  }))}
+                  error={errors.local_council?.message}
+                  disabled={!selectedRegion}
+                  value={field.value}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
             <div className="sm:col-span-2">
-              <FormSelect
-                label="Jamatkhana"
-                required
-                options={jamatkhanaOptions.map((j) => ({ label: j, value: j }))}
-                error={errors.jamatkhana?.message}
-                disabled={!selectedLocalCouncil}
-                {...register("jamatkhana")}
+              <Controller
+                control={control}
+                name="jamatkhana"
+                defaultValue={defaultValues?.jamatkhana ?? ""}
+                render={({ field }) => (
+                  <FormSelect
+                    label="Jamatkhana"
+                    required
+                    options={jamatkhanaOptions.map((j) => ({
+                      label: j,
+                      value: j,
+                    }))}
+                    error={errors.jamatkhana?.message}
+                    disabled={!selectedLocalCouncil}
+                    value={field.value}
+                    onChange={(e: any) => {
+                      if (typeof e === "string") field.onChange(e);
+                      else if (e?.target) field.onChange(e.target.value);
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
               />
             </div>
           </div>
@@ -285,15 +356,28 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
               error={errors.emergency_name?.message}
               {...register("emergency_name")}
             />
-            <FormSelect
-              label="Relationship"
-              required
-              options={RELATIONSHIP_OPTIONS.map((r) => ({
-                label: r,
-                value: r,
-              }))}
-              error={errors.emergency_relationship?.message}
-              {...register("emergency_relationship")}
+            <Controller
+              control={control}
+              name="emergency_relationship"
+              defaultValue={defaultValues?.emergency_relationship ?? ""}
+              render={({ field }) => (
+                <FormSelect
+                  label="Relationship"
+                  required
+                  options={RELATIONSHIP_OPTIONS.map((r) => ({
+                    label: r,
+                    value: r,
+                  }))}
+                  error={errors.emergency_relationship?.message}
+                  value={field.value}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
             <FormInput
               label="Contact Phone"
@@ -345,7 +429,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
         </div>
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

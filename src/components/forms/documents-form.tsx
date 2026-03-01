@@ -33,6 +33,10 @@ export function DocumentsForm({
 }: DocumentsFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [cvUploaded, setCvUploaded] = useState(!!existingCV);
+  const [transcriptUploaded, setTranscriptUploaded] = useState(!!existingTranscript);
+  const [cvError, setCvError] = useState("");
+  const [transcriptError, setTranscriptError] = useState("");
 
   const {
     register,
@@ -54,6 +58,18 @@ export function DocumentsForm({
   });
 
   async function onSubmit(data: DocumentsInput) {
+    // Validate required file uploads
+    let hasFileError = false;
+    if (!cvUploaded) {
+      setCvError("CV/Resume is required. Please upload your CV.");
+      hasFileError = true;
+    }
+    if (!transcriptUploaded) {
+      setTranscriptError("Academic transcript is required. Please upload your transcript.");
+      hasFileError = true;
+    }
+    if (hasFileError) return;
+
     setIsLoading(true);
     try {
       const result = await saveDocumentsAction(data);
@@ -96,6 +112,14 @@ export function DocumentsForm({
                   : null
               }
               required
+              error={cvError}
+              onUploadComplete={() => {
+                setCvUploaded(true);
+                setCvError("");
+              }}
+              onRemove={() => {
+                setCvUploaded(false);
+              }}
             />
             <FileUpload
               label="Academic Transcript"
@@ -111,6 +135,15 @@ export function DocumentsForm({
                     }
                   : null
               }
+              required
+              error={transcriptError}
+              onUploadComplete={() => {
+                setTranscriptUploaded(true);
+                setTranscriptError("");
+              }}
+              onRemove={() => {
+                setTranscriptUploaded(false);
+              }}
             />
           </div>
         </div>

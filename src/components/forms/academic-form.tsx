@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,7 +30,8 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    control,
+    formState: { errors, isDirty },
   } = useForm<AcademicInput>({
     resolver: zodResolver(academicSchema),
     defaultValues: {
@@ -98,15 +99,32 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
             error={errors.major_specialization?.message}
             {...register("major_specialization")}
           />
-          <FormSelect
-            label="Current Year of Study"
-            required
-            options={YEAR_OF_STUDY_OPTIONS.map((y) => ({
-              label: y.label,
-              value: String(y.value),
-            }))}
-            error={errors.current_year_of_study?.message}
-            {...register("current_year_of_study")}
+          <Controller
+            control={control}
+            name="current_year_of_study"
+            defaultValue={
+              defaultValues?.current_year_of_study
+                ? String(defaultValues.current_year_of_study)
+                : ""
+            }
+            render={({ field }) => (
+              <FormSelect
+                label="Current Year of Study"
+                required
+                options={YEAR_OF_STUDY_OPTIONS.map((y) => ({
+                  label: y.label,
+                  value: String(y.value),
+                }))}
+                error={errors.current_year_of_study?.message}
+                value={field.value}
+                onChange={(e: any) => {
+                  if (typeof e === "string") field.onChange(e);
+                  else if (e?.target) field.onChange(e.target.value);
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            )}
           />
           <FormInput
             label="CGPA / Percentage"
@@ -125,39 +143,86 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
             Expected Graduation
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormSelect
-              label="Month"
-              required
-              options={MONTHS.map((m) => ({
-                label: m.label,
-                value: String(m.value),
-              }))}
-              error={errors.expected_graduation_month?.message}
-              {...register("expected_graduation_month")}
+            <Controller
+              control={control}
+              name="expected_graduation_month"
+              defaultValue={
+                defaultValues?.expected_graduation_month
+                  ? String(defaultValues.expected_graduation_month)
+                  : ""
+              }
+              render={({ field }) => (
+                <FormSelect
+                  label="Month"
+                  required
+                  options={MONTHS.map((m) => ({
+                    label: m.label,
+                    value: String(m.value),
+                  }))}
+                  error={errors.expected_graduation_month?.message}
+                  value={field.value}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
-            <FormSelect
-              label="Year"
-              required
-              options={yearOptions}
-              error={errors.expected_graduation_year?.message}
-              {...register("expected_graduation_year")}
+            <Controller
+              control={control}
+              name="expected_graduation_year"
+              defaultValue={
+                defaultValues?.expected_graduation_year
+                  ? String(defaultValues.expected_graduation_year)
+                  : ""
+              }
+              render={({ field }) => (
+                <FormSelect
+                  label="Year"
+                  required
+                  options={yearOptions}
+                  error={errors.expected_graduation_year?.message}
+                  value={field.value}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
           </div>
         </div>
 
-        <FormSelect
-          label="Religious Education Level"
-          required
-          options={RE_EDUCATION_OPTIONS.map((r) => ({
-            label: r.label,
-            value: r.value,
-          }))}
-          error={errors.re_education_level?.message}
-          {...register("re_education_level")}
+        <Controller
+          control={control}
+          name="re_education_level"
+          defaultValue={defaultValues?.re_education_level ?? ""}
+          render={({ field }) => (
+            <FormSelect
+              label="Religious Education Level"
+              required
+              options={RE_EDUCATION_OPTIONS.map((r) => ({
+                label: r.label,
+                value: r.value,
+              }))}
+              error={errors.re_education_level?.message}
+              value={field.value}
+              onChange={(e: any) => {
+                if (typeof e === "string") field.onChange(e);
+                else if (e?.target) field.onChange(e.target.value);
+              }}
+              onBlur={field.onBlur}
+              name={field.name}
+            />
+          )}
         />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

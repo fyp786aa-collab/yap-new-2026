@@ -27,7 +27,9 @@ export default async function PersonalInfoPage() {
     full_name: applicant?.full_name || "",
     father_name: applicant?.father_name || "",
     gender: (applicant?.gender as "Male" | "Female" | "Other") || "Male",
-    date_of_birth: applicant?.date_of_birth || "",
+    date_of_birth: applicant?.date_of_birth
+      ? new Date(applicant.date_of_birth).toISOString().slice(0, 10)
+      : "",
     cnic: applicant?.cnic === "00000-0000000-0" ? "" : applicant?.cnic || "",
     primary_contact: applicant?.primary_contact || "",
     whatsapp_number: applicant?.whatsapp_number || "",

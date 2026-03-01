@@ -59,14 +59,17 @@ export const personalInfoSchema = z
   .refine(
     (data) => {
       if (data.has_relatives_gilgit_chitral) {
+        // ensure relatives contact present and matches phone format
         return (
-          data.relatives_contact && data.relatives_contact.trim().length > 0
+          data.relatives_contact &&
+          data.relatives_contact.trim().length > 0 &&
+          /^03\d{2}-\d{7}$/.test(data.relatives_contact)
         );
       }
       return true;
     },
     {
-      message: "Please provide relatives contact",
+      message: "Relatives contact must be in format 03XX-XXXXXXX",
       path: ["relatives_contact"],
     },
   );

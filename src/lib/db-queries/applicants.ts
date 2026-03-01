@@ -8,8 +8,8 @@ export async function createApplicant(
   const sql = getDb();
   try {
     const rows = await sql`
-      INSERT INTO applicants (user_id, full_name, father_name, gender, date_of_birth, cnic, primary_contact, email)
-      VALUES (${userId}, '', '', 'Male', '2000-01-01', '00000-0000000-0', '', ${email.toLowerCase()})
+      INSERT INTO applicants (user_id, email)
+      VALUES (${userId}, ${email.toLowerCase()})
       RETURNING *
     `;
     return { success: true, data: rows[0] as Applicant };

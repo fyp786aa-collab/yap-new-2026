@@ -104,9 +104,9 @@ export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
                 htmlFor="consent_documents"
                 className="text-sm leading-relaxed cursor-pointer"
               >
-                I consent to the use of my submitted documents, photographs, and
-                videos by AKYSB for the purpose of application review,
-                internship placement, and programme-related communications.
+                I consent to the use of my submitted documents, and videos by
+                AKYSB for the purpose of application review, internship
+                placement, and programme-related communications.
               </label>
             </div>
             {errors.consent_documents && (

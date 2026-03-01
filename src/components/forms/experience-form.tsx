@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,7 +27,8 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    control,
+    formState: { errors, isDirty },
   } = useForm<ExperienceInput>({
     resolver: zodResolver(experienceSchema),
     defaultValues: {
@@ -61,19 +62,32 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
       description="Describe your relevant experiences, volunteer work, and community engagement"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <FormTextarea
-          label="Describe your relevant experience"
-          required
-          hint="Include volunteer work, internships, community projects, or any relevant engagement. Maximum 150 words."
-          maxWords={150}
-          disableCopyPaste
-          rows={8}
-          error={errors.description?.message}
-          {...register("description")}
+        <Controller
+          control={control}
+          name="description"
+          defaultValue={defaultValues?.description ?? ""}
+          render={({ field }) => (
+            <FormTextarea
+              label="Describe your relevant experience"
+              required
+              hint="Include volunteer work, internships, community projects, or any relevant engagement. Maximum 150 words."
+              maxWords={150}
+              disableCopyPaste
+              rows={8}
+              error={errors.description?.message}
+              value={field.value}
+              onChange={(e: any) => {
+                if (typeof e === "string") field.onChange(e);
+                else if (e?.target) field.onChange(e.target.value);
+              }}
+              onBlur={field.onBlur}
+              name={field.name}
+            />
+          )}
         />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>
