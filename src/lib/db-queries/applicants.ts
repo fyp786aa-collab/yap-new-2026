@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { cache } from "react";
 import type { Applicant } from "@/types";
 
 export async function createApplicant(
@@ -20,20 +21,20 @@ export async function createApplicant(
   }
 }
 
-export async function getApplicantByUserId(
-  userId: string,
-): Promise<Applicant | null> {
-  const sql = getDb();
-  try {
-    const rows = await sql`
+export const getApplicantByUserId = cache(
+  async (userId: string): Promise<Applicant | null> => {
+    const sql = getDb();
+    try {
+      const rows = await sql`
       SELECT * FROM applicants WHERE user_id = ${userId} LIMIT 1
     `;
-    return rows.length > 0 ? (rows[0] as Applicant) : null;
-  } catch (error) {
-    console.error("Error fetching applicant:", error);
-    return null;
-  }
-}
+      return rows.length > 0 ? (rows[0] as Applicant) : null;
+    } catch (error) {
+      console.error("Error fetching applicant:", error);
+      return null;
+    }
+  },
+);
 
 export async function updateApplicant(
   userId: string,

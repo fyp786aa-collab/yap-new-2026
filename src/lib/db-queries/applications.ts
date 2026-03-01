@@ -1,4 +1,5 @@
 import { getDb, withRetry } from "@/lib/db";
+import { cache } from "react";
 import { COHORT_YEAR } from "@/lib/constants";
 import type { Application, SectionCompletion } from "@/types";
 
@@ -41,25 +42,25 @@ export async function getApplicationByApplicantId(
   }
 }
 
-export async function getApplicationByUserId(
-  userId: string,
-): Promise<Application | null> {
-  const sql = getDb();
-  try {
-    const rows = await withRetry(
-      () => sql`
+export const getApplicationByUserId = cache(
+  async (userId: string): Promise<Application | null> => {
+    const sql = getDb();
+    try {
+      const rows = await withRetry(
+        () => sql`
       SELECT a.* FROM applications a
       JOIN applicants ap ON a.applicant_id = ap.id
       WHERE ap.user_id = ${userId} AND a.cohort_year = ${COHORT_YEAR}
       LIMIT 1
     `,
-    );
-    return rows.length > 0 ? (rows[0] as Application) : null;
-  } catch (error) {
-    console.error("Error fetching application by user:", error);
-    return null;
-  }
-}
+      );
+      return rows.length > 0 ? (rows[0] as Application) : null;
+    } catch (error) {
+      console.error("Error fetching application by user:", error);
+      return null;
+    }
+  },
+);
 
 export async function updateApplicationStatus(
   applicationId: string,
@@ -83,6 +84,20 @@ export async function updateApplicationStatus(
   } catch (error) {
     console.error("Error updating application status:", error);
     return { success: false, error: "Failed to update application" };
+  }
+}
+
+export async function markConsentGiven(applicationId: string) {
+  const sql = getDb();
+  try {
+    await sql`
+      UPDATE applications SET consent_given = TRUE, updated_at = NOW()
+      WHERE id = ${applicationId}
+    `;
+    return { success: true };
+  } catch (error) {
+    console.error("Error marking consent:", error);
+    return { success: false, error: "Failed to save consent" };
   }
 }
 

@@ -45,6 +45,7 @@ export interface Application {
   applicant_id: string;
   cohort_year: number;
   status: ApplicationStatus;
+  consent_given: boolean;
   last_saved_at: string;
   submitted_at: string | null;
 }

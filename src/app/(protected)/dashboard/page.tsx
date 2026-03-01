@@ -3,7 +3,6 @@ import {
   getApplicationByUserId,
   getSectionCompletion,
 } from "@/lib/db-queries/applications";
-import { getApplicantByUserId } from "@/lib/db-queries/applicants";
 import { redirect } from "next/navigation";
 import { ROUTES, SECTION_ORDER } from "@/lib/routes";
 import { APP_NAME, COHORT_YEAR } from "@/lib/constants";
@@ -46,13 +45,8 @@ export default async function DashboardPage() {
   const user = await requireAuth();
   const application = await getApplicationByUserId(user.id);
 
-  // Redirect to consent if no application or applicant hasn't started the form
-  if (!application) {
-    redirect(ROUTES.DASHBOARD.CONSENT);
-  }
-
-  const applicant = await getApplicantByUserId(user.id);
-  if (!applicant?.full_name) {
+  // Redirect to consent if no application or consent not given
+  if (!application || !application.consent_given) {
     redirect(ROUTES.DASHBOARD.CONSENT);
   }
 

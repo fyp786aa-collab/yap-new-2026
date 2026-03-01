@@ -2,7 +2,10 @@
 
 import { consentSchema, type ConsentInput } from "@/lib/validations/consent";
 import { createApplicant } from "@/lib/db-queries/applicants";
-import { createApplication } from "@/lib/db-queries/applications";
+import {
+  createApplication,
+  markConsentGiven,
+} from "@/lib/db-queries/applications";
 import { getApplicantByUserId } from "@/lib/db-queries/applicants";
 import type { ActionResponse } from "@/types";
 
@@ -29,9 +32,12 @@ export async function submitConsentAction(
 
     // Ensure application exists
     const appResult = await createApplication(applicant.id);
-    if (!appResult.success) {
+    if (!appResult.success || !appResult.data) {
       return { success: false, error: "Failed to create application" };
     }
+
+    // Mark consent as given
+    await markConsentGiven(appResult.data.id);
 
     return { success: true };
   } catch (error) {

@@ -89,7 +89,7 @@ CREATE TABLE internship_preferences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
     agency VARCHAR(60) NOT NULL
-        CHECK (agency IN ('AKESP','AKHS','AKRSP','AKAH','Sarena Hotels','Accelerate Prosperity')),
+        CHECK (agency IN ('AKESP','AKHS','AKRSP','AKAH','Serena Hotels','Accelerate Prosperity')),
     priority_rank SMALLINT NOT NULL CHECK (priority_rank BETWEEN 1 AND 6),
     UNIQUE (application_id, agency),
     UNIQUE (application_id, priority_rank)

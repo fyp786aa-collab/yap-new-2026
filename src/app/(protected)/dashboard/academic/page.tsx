@@ -10,7 +10,8 @@ export const metadata = { title: "Academic Background" };
 export default async function AcademicPage() {
   const user = await requireAuth();
   const application = await getApplicationByUserId(user.id);
-  if (!application) redirect(ROUTES.DASHBOARD.CONSENT);
+  if (!application || !application.consent_given)
+    redirect(ROUTES.DASHBOARD.CONSENT);
   if (application.status === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
 
   const academic = await getAcademicBackground(application.id);

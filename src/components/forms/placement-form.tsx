@@ -144,7 +144,7 @@ export function PlacementForm({ defaultValues }: PlacementFormProps) {
         {stayedAway && (
           <div className="animate-fade-in">
             <FormTextarea
-              label="Please describe your experience staying away from home"
+              label="Please briefly describe your experience of living away from home, including any challenges or personal growth you experienced"
               required
               error={errors.stay_away_description?.message}
               {...register("stay_away_description")}

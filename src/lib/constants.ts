@@ -21,7 +21,7 @@ export const AGENCIES = [
   { value: "AKHS", label: "AKHS" },
   { value: "AKRSP", label: "AKRSP" },
   { value: "AKAH", label: "AKAH" },
-  { value: "Sarena Hotels", label: "Sarena Hotels" },
+  { value: "Serena Hotels", label: "Serena Hotels" },
   { value: "Accelerate Prosperity", label: "Accelerate Prosperity" },
 ] as const;
 

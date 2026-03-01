@@ -1,13 +1,14 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { ROUTES } from "@/lib/routes";
 import type { SessionUser, UserRole } from "@/types";
 
 /**
  * Proxy-based auth guard for server components.
- * Call this at the top of any protected page/layout.
+ * Wrapped in React cache() so multiple calls in the same request are deduped.
  */
-export async function requireAuth(): Promise<SessionUser> {
+export const requireAuth = cache(async (): Promise<SessionUser> => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -24,7 +25,7 @@ export async function requireAuth(): Promise<SessionUser> {
     role: (session.user.role ?? "applicant") as UserRole,
     email_verified: session.user.emailVerified ?? false,
   };
-}
+});
 
 /**
  * Get session without redirecting (returns null if not authenticated)

@@ -74,8 +74,12 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
                 <p className="font-medium text-yap-primary">Programme Period</p>
                 <p className="text-muted-foreground mt-1">
                   The Young Ambassador Programme internship placements take
-                  place during <strong>July – August 2026</strong>. You must be
-                  available for the full duration of the placement.
+                  place during{" "}
+                  <strong>
+                    5th July – 16th August 2026 (excluding tavel dates)
+                  </strong>
+                  . You must be available for the full duration of the
+                  placement.
                 </p>
               </div>
             </div>
@@ -99,7 +103,10 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
               className="text-sm leading-relaxed cursor-pointer"
             >
               I confirm that I am available to participate in the Young
-              Ambassador Programme during <strong>July – August 2026</strong>{" "}
+              Ambassador Programme during{" "}
+              <strong>
+                5th July – 16th August 2026 (excluding tavel dates)
+              </strong>{" "}
               and I commit to completing the full duration of my internship
               placement.
             </label>

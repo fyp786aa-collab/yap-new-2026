@@ -43,11 +43,17 @@ interface AppSidebarProps {
   userEmail: string;
   completion: SectionCompletion;
   applicationStatus: ApplicationStatus;
+  consentGiven: boolean;
 }
 
-export function AppSidebar({ completion, applicationStatus }: AppSidebarProps) {
+export function AppSidebar({
+  completion,
+  applicationStatus,
+  consentGiven,
+}: AppSidebarProps) {
   const pathname = usePathname();
   const isSubmitted = applicationStatus === "Submitted";
+  const isLocked = !consentGiven || isSubmitted;
 
   const completedCount = Object.values(completion).filter(Boolean).length;
 
@@ -101,30 +107,31 @@ export function AppSidebar({ completion, applicationStatus }: AppSidebarProps) {
                 return (
                   <SidebarMenuItem key={section.key}>
                     <SidebarMenuButton
-                      asChild
+                      asChild={!isLocked}
                       isActive={isActive}
-                      className="text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white"
+                      className={`text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
-                      <Link
-                        href={
-                          isSubmitted
-                            ? ROUTES.DASHBOARD.SUBMITTED
-                            : section.route
-                        }
-                      >
+                      {isLocked ? (
                         <span className="flex items-center gap-3 w-full">
-                          {isSubmitted ? (
-                            <Lock className="w-4 h-4 text-white/30 shrink-0" />
-                          ) : isComplete ? (
-                            <CheckCircle2 className="w-4 h-4 text-yap-accent shrink-0" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-white/30 shrink-0" />
-                          )}
+                          <Lock className="w-4 h-4 text-white/30 shrink-0" />
                           <span className="text-sm truncate">
                             {section.section}. {section.label}
                           </span>
                         </span>
-                      </Link>
+                      ) : (
+                        <Link href={section.route}>
+                          <span className="flex items-center gap-3 w-full">
+                            {isComplete ? (
+                              <CheckCircle2 className="w-4 h-4 text-yap-accent shrink-0" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-white/30 shrink-0" />
+                            )}
+                            <span className="text-sm truncate">
+                              {section.section}. {section.label}
+                            </span>
+                          </span>
+                        </Link>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -138,20 +145,21 @@ export function AppSidebar({ completion, applicationStatus }: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                asChild
+                asChild={!isLocked}
                 isActive={pathname === ROUTES.DASHBOARD.REVIEW}
-                className="text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white"
+                className={`text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <Link
-                  href={
-                    isSubmitted
-                      ? ROUTES.DASHBOARD.SUBMITTED
-                      : ROUTES.DASHBOARD.REVIEW
-                  }
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Review & Submit</span>
-                </Link>
+                {isLocked ? (
+                  <span>
+                    <Lock className="w-4 h-4 text-white/30" />
+                    <span>Review & Submit</span>
+                  </span>
+                ) : (
+                  <Link href={ROUTES.DASHBOARD.REVIEW}>
+                    <Send className="w-4 h-4" />
+                    <span>Review & Submit</span>
+                  </Link>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

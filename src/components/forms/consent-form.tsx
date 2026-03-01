@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { consentSchema, type ConsentInput } from "@/lib/validations/consent";
 import { submitConsentAction } from "@/actions/consent.actions";
@@ -17,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ButtonPrimary } from "@/components/ui/button-primary";
-import { FormInput } from "@/components/ui/form-input";
 import { ArrowRight, Shield, AlertCircle } from "lucide-react";
 
 interface ConsentFormProps {
@@ -26,11 +24,9 @@ interface ConsentFormProps {
 }
 
 export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
-    register,
     handleSubmit,
     setValue,
     watch,
@@ -41,7 +37,6 @@ export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
       consent_documents: false as unknown as true,
       consent_availability: false as unknown as true,
       consent_truthful: false as unknown as true,
-      availability_date: "",
     },
   });
 
@@ -55,8 +50,7 @@ export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
       const result = await submitConsentAction(userId, userEmail, data);
       if (result.success) {
         toast.success("Consent recorded. Starting your application!");
-        router.push(ROUTES.DASHBOARD.HOME);
-        router.refresh();
+        window.location.href = ROUTES.DASHBOARD.PERSONAL_INFO;
       } else {
         toast.error(result.error || "Failed to record consent");
       }
@@ -143,7 +137,7 @@ export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
               >
                 I confirm that I am available to participate in the Young
                 Ambassador Programme during the internship placement period
-                (July–August 2026).
+                July–August 2026 (excluding travel dates).
               </label>
             </div>
             {errors.consent_availability && (
@@ -151,22 +145,6 @@ export function ConsentForm({ userId, userEmail }: ConsentFormProps) {
                 {errors.consent_availability.message}
               </p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Availability Date */}
-        <Card
-          className={
-            errors.availability_date ? "border-red-300 bg-red-50/30" : ""
-          }
-        >
-          <CardContent className="pt-5 pb-4">
-            <FormInput
-              label="From which date are you available?"
-              type="date"
-              error={errors.availability_date?.message}
-              {...register("availability_date")}
-            />
           </CardContent>
         </Card>
 

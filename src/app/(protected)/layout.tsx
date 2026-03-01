@@ -15,8 +15,12 @@ export default async function ProtectedLayout({
 }) {
   const user = await requireAuth();
 
-  // Ensure applicant + application records exist
-  let applicant = await getApplicantByUserId(user.id);
+  // Fetch applicant + application in parallel
+  let [applicant, application] = await Promise.all([
+    getApplicantByUserId(user.id),
+    getApplicationByUserId(user.id),
+  ]);
+
   if (!applicant) {
     const result = await createApplicant(user.id, user.email);
     if (!result.success || !result.data) {
@@ -25,7 +29,6 @@ export default async function ProtectedLayout({
     applicant = result.data;
   }
 
-  let application = await getApplicationByUserId(user.id);
   if (!application) {
     const result = await createApplication(applicant.id);
     if (!result.success || !result.data) {
@@ -48,6 +51,7 @@ export default async function ProtectedLayout({
           userEmail={user.email}
           completion={completion}
           applicationStatus={application.status}
+          consentGiven={application.consent_given}
         />
         <div className="flex-1 flex flex-col min-h-screen">
           <TopBar
