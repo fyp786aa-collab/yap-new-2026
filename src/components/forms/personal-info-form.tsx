@@ -114,7 +114,6 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
       if (result.success) {
         toast.success("Personal information saved!");
         router.push(ROUTES.DASHBOARD.ACADEMIC);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

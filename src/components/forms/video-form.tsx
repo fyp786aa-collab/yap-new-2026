@@ -53,7 +53,6 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
     setIsLoading(true);
     try {
       router.push(ROUTES.DASHBOARD.REVIEW);
-      router.refresh();
     } finally {
       setIsLoading(false);
     }

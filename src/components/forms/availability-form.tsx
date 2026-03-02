@@ -48,7 +48,6 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
       if (result.success) {
         toast.success("Availability confirmed!");
         router.push(ROUTES.DASHBOARD.DOCUMENTS);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

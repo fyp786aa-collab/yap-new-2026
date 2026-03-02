@@ -53,7 +53,6 @@ export function PlacementForm({ defaultValues }: PlacementFormProps) {
       if (result.success) {
         toast.success("Placement readiness saved!");
         router.push(ROUTES.DASHBOARD.INTERNSHIP_PREFS);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

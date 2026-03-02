@@ -57,12 +57,18 @@ export default async function DashboardPage() {
   // The "placement" key in the grid now represents placement + internship prefs + skills combined
   const combinedPlacementComplete =
     completion.placement && completion.internshipPrefs && completion.skills;
+  // Only count the 8 visible sections (exclude internshipPrefs & skills as separate entries)
+  const {
+    internshipPrefs: _ip,
+    skills: _sk,
+    ...visibleCompletion
+  } = completion;
   const adjustedCompletion = {
-    ...completion,
+    ...visibleCompletion,
     placement: combinedPlacementComplete,
   };
   const completedCount =
-    Object.values(adjustedCompletion).filter(Boolean).length - 2; // -2 because internshipPrefs & skills are merged into placement
+    Object.values(adjustedCompletion).filter(Boolean).length;
   const totalSections = 8;
   const progressPercent = (completedCount / totalSections) * 100;
 

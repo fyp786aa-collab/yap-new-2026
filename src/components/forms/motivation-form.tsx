@@ -47,7 +47,6 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
       if (result.success) {
         toast.success("Motivation essay saved!");
         router.push(ROUTES.DASHBOARD.AVAILABILITY);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

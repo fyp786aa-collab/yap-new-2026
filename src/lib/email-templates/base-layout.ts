@@ -20,9 +20,7 @@ export function emailBaseLayout(content: string): string {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <div style="width: 56px; height: 56px; background-color: #82a845; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                      <span style="color: #ffffff; font-size: 24px; font-weight: bold; line-height: 56px;">YAP</span>
-                    </div>
+                    <img src="${process.env.NEXT_PUBLIC_APP_URL}/YAP Logo.png" alt="YAP Logo" width="56" height="56" style="border-radius: 12px; margin-bottom: 16px; object-fit: contain;" />
                   </td>
                 </tr>
                 <tr>

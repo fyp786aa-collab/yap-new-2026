@@ -61,7 +61,6 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
       if (result.success) {
         toast.success("Academic information saved!");
         router.push(ROUTES.DASHBOARD.PLACEMENT);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

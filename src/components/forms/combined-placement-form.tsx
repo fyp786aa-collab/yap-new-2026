@@ -133,7 +133,6 @@ export function CombinedPlacementForm({
       ) {
         toast.success("Placement, preferences & skills saved!");
         router.push(ROUTES.DASHBOARD.EXPERIENCE);
-        router.refresh();
       } else {
         const error =
           placementResult.error || prefsResult.error || skillsResult.error;

@@ -42,7 +42,6 @@ export function InternshipPrefsForm({
       if (result.success) {
         toast.success("Internship preferences saved!");
         router.push(ROUTES.DASHBOARD.SKILLS);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

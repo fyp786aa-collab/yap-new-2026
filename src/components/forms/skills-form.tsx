@@ -54,7 +54,6 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
       if (result.success) {
         toast.success("Skills saved!");
         router.push(ROUTES.DASHBOARD.EXPERIENCE);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }
@@ -91,7 +90,10 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
                     label={skill.label}
                     value={value || 0}
                     onChange={(v) =>
-                      setValue(fieldName, v, { shouldValidate: true, shouldDirty: true })
+                      setValue(fieldName, v, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
                     }
                   />
                   {error && (

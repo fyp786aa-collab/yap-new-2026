@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
+import Image from "next/image";
 import { APP_NAME } from "@/lib/constants";
-import { GraduationCap } from "lucide-react";
 
 export default async function AuthLayout({
   children,
@@ -21,16 +21,21 @@ export default async function AuthLayout({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-yap-accent)_0%,_transparent_50%)] opacity-20" />
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <div className="animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-yap-accent flex items-center justify-center">
-                <GraduationCap className="w-7 h-7 text-white" />
-              </div>
+            <div className="mb-8">
+              <Image
+                src="/YAP Logo with Text.png"
+                alt="YAP Logo"
+                width={240}
+                height={80}
+                className="object-contain"
+                priority
+              />
             </div>
-            <h1 className="text-4xl font-bold leading-tight mb-4">
+            {/* <h1 className="text-4xl font-bold leading-tight mb-4">
               Young Ambassador
               <br />
               Programme 2026
-            </h1>
+            </h1> */}
             <p className="text-lg text-white/70 max-w-md leading-relaxed">
               Gain hands-on professional experience through internship
               placements with AKDN agencies across Gilgit-Baltistan and Chitral.
@@ -61,9 +66,14 @@ export default async function AuthLayout({
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-10 h-10 rounded-xl bg-yap-primary flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
+            <Image
+              src="/YAP Logo.png"
+              alt="YAP Logo"
+              width={100}
+              height={100}
+              className="object-contain"
+              priority
+            />
             <span className="text-lg font-bold text-yap-primary">
               {APP_NAME}
             </span>

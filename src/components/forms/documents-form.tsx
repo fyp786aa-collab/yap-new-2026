@@ -91,7 +91,6 @@ export function DocumentsForm({
       if (result.success) {
         toast.success("Documents & references saved!");
         router.push(ROUTES.DASHBOARD.VIDEO);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

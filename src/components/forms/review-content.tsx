@@ -85,7 +85,6 @@ export function ReviewContent({
       if (result.success) {
         toast.success("Application submitted successfully!");
         router.push(ROUTES.DASHBOARD.SUBMITTED);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to submit");
       }

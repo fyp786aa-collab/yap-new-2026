@@ -66,7 +66,6 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
       if (result.success) {
         toast.success("Experience saved!");
         router.push(ROUTES.DASHBOARD.MOTIVATION);
-        router.refresh();
       } else {
         toast.error(result.error || "Failed to save");
       }

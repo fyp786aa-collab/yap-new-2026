@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/sidebar";
 import { ROUTES, SECTION_ORDER } from "@/lib/routes";
 import type { SectionCompletion, ApplicationStatus } from "@/types";
+import Image from "next/image";
 import {
-  GraduationCap,
   Home,
   FileCheck,
   CheckCircle2,
@@ -30,8 +30,6 @@ const COMPLETION_KEY_MAP: Record<string, keyof SectionCompletion> = {
   "personal-info": "personalInfo",
   academic: "academic",
   placement: "placement",
-  "internship-prefs": "internshipPrefs",
-  skills: "skills",
   experience: "experience",
   motivation: "motivation",
   availability: "availability",
@@ -55,15 +53,33 @@ export function AppSidebar({
   const isSubmitted = applicationStatus === "Submitted";
   const isLocked = !consentGiven || isSubmitted;
 
-  const completedCount = Object.values(completion).filter(Boolean).length;
+  // Count 8 visible sections (placement = placement + internshipPrefs + skills combined)
+  const combinedPlacementComplete =
+    completion.placement && completion.internshipPrefs && completion.skills;
+  const {
+    internshipPrefs: _ip,
+    skills: _sk,
+    ...visibleCompletion
+  } = completion;
+  const adjustedCompletion = {
+    ...visibleCompletion,
+    placement: combinedPlacementComplete,
+  };
+  const completedCount =
+    Object.values(adjustedCompletion).filter(Boolean).length;
+  const totalSections = 8;
 
   return (
     <Sidebar className="border-r-0">
       <SidebarHeader className="bg-yap-primary px-4 py-5">
         <Link href={ROUTES.DASHBOARD.HOME} className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-yap-accent flex items-center justify-center shrink-0">
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
+          <Image
+            src="/YAP Logo.png"
+            alt="YAP Logo"
+            width={36}
+            height={36}
+            className="rounded-lg shrink-0 object-contain"
+          />
           <div className="min-w-0">
             <p className="text-sm font-bold text-white truncate">YAP 2026</p>
             <p className="text-[11px] text-white/50">Application Portal</p>
@@ -99,9 +115,13 @@ export function AppSidebar({
             <SidebarMenu>
               {SECTION_ORDER.map((section) => {
                 const completionKey = COMPLETION_KEY_MAP[section.key];
-                const isComplete = completionKey
-                  ? completion[completionKey]
-                  : false;
+                // For the combined placement section, check all 3 sub-completions
+                const isComplete =
+                  section.key === "placement"
+                    ? combinedPlacementComplete
+                    : completionKey
+                      ? completion[completionKey]
+                      : false;
                 const isActive = pathname === section.route;
 
                 return (
@@ -169,13 +189,15 @@ export function AppSidebar({
       <SidebarFooter className="bg-yap-primary px-4 py-4">
         <div className="flex items-center gap-2 text-white/50 text-xs">
           <FileCheck className="w-4 h-4 shrink-0" />
-          <span>{completedCount} of 10 sections complete</span>
+          <span>
+            {completedCount} of {totalSections} sections complete
+          </span>
         </div>
         {/* Progress bar */}
         <div className="w-full bg-white/10 rounded-full h-1.5 mt-2">
           <div
             className="bg-yap-accent h-1.5 rounded-full transition-all duration-500"
-            style={{ width: `${(completedCount / 10) * 100}%` }}
+            style={{ width: `${(completedCount / totalSections) * 100}%` }}
           />
         </div>
       </SidebarFooter>
