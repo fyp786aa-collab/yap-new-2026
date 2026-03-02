@@ -59,7 +59,7 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
     <SectionWrapper
       sectionKey="experience"
       title="Experience & Engagement"
-      description="Describe your relevant experiences, volunteer work, and community engagement"
+      description="Describe your relevant experiences, volunteer work, Internship and community engagement"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Controller

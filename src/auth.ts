@@ -1,7 +1,11 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { loginSchema } from "@/lib/validations/auth";
-import { findUserByEmail, getUserPasswordHash } from "@/lib/db-queries/users";
+import {
+  findUserByEmail,
+  findUserById,
+  getUserPasswordHash,
+} from "@/lib/db-queries/users";
 import argon2 from "argon2";
 import { ROUTES } from "@/lib/routes";
 
@@ -61,9 +65,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.emailVerified = (user as Record<string, unknown>)
           .emailVerified as boolean;
       }
+
+      // On subsequent requests, verify user still exists in DB
+      if (token.id && !user) {
+        const dbUser = await findUserById(token.id as string);
+        if (!dbUser) {
+          // User was deleted — invalidate the token
+          return { ...token, id: null, role: null, emailVerified: null };
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      // If user was deleted (token invalidated), return empty session
+      if (!token.id) {
+        return null as unknown as typeof session;
+      }
       if (session.user) {
         session.user.id = token.id as string;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -68,10 +68,10 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
           defaultValue={defaultValues?.essay_response ?? ""}
           render={({ field }) => (
             <FormTextarea
-              label="Why do you want to join the Young Ambassador Programme?"
+              label="Learning through reflection is an important part of growth. Briefly explain what “reflection in action” means to you. Also, share a real example from your life where you had to adjust your thinking or behavior while a situation was happening, and explain what you learned from that experience. Additionally, describe how you believe practicing reflection will help you make the most of this internship."
               required
-              hint="Share your motivation, career goals, and how YAP aligns with your aspirations. Maximum 150 words."
-              maxWords={150}
+              hint="Share your motivation, career goals, and how YAP aligns with your aspirations. Maximum 250 words."
+              maxWords={250}
               disableCopyPaste
               rows={8}
               error={errors.essay_response?.message}

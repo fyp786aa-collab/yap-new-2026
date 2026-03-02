@@ -45,23 +45,11 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
         <div className="flex justify-between items-center">
           <label
             htmlFor={textareaId}
-            className="block text-sm font-medium text-[#152232]"
+            className="block text-sm text-justify font-medium text-[#152232]"
           >
             {label}
             {props.required && <span className="text-[#dc2626] ml-0.5">*</span>}
           </label>
-          {maxWords && (
-            <span
-              className={cn(
-                "text-xs",
-                currentWords > maxWords
-                  ? "text-[#dc2626] font-medium"
-                  : "text-gray-500",
-              )}
-            >
-              {currentWords}/{maxWords} words
-            </span>
-          )}
         </div>
         <textarea
           ref={ref}
@@ -79,8 +67,20 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           )}
           {...props}
         />
+        {maxWords && (
+          <span
+            className={cn(
+              "text-xs float-right",
+              currentWords > maxWords
+                ? "text-[#dc2626] font-medium"
+                : "text-gray-500",
+            )}
+          >
+            {currentWords}/{maxWords} words
+          </span>
+        )}
         {error && (
-          <p className="text-[#dc2626] text-sm mt-1 animate-fade-in">{error}</p>
+          <p className="text-yap-error text-sm mt-1 animate-fade-in">{error}</p>
         )}
         {hint && !error && <p className="text-gray-500 text-xs mt-1">{hint}</p>}
       </div>
