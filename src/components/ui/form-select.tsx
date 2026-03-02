@@ -87,11 +87,7 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
               className,
             )}
           >
-            <SelectValue>
-              {val
-                ? options.find((o) => String(o.value) === val)?.label
-                : placeholder || "Select..."}
-            </SelectValue>
+            <SelectValue placeholder={placeholder || "Select..."} />
           </SelectTrigger>
           <SelectContent>
             {options.map((opt) => (
