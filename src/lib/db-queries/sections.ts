@@ -353,6 +353,23 @@ export async function upsertReference(
   }
 }
 
+export async function deleteReference(
+  applicationId: string,
+  referenceType: string,
+) {
+  const sql = getDb();
+  try {
+    await sql`
+      DELETE FROM application_references
+      WHERE application_id = ${applicationId} AND reference_type = ${referenceType}
+    `;
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting reference:", error);
+    return { success: false, error: "Failed to delete reference" };
+  }
+}
+
 // ==================== SECTION DATA FETCHERS ====================
 
 export async function getLocationInfo(applicationId: string) {

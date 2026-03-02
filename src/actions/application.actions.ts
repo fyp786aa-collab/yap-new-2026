@@ -23,6 +23,7 @@ import {
   upsertMotivationAlignment,
   upsertAvailabilityCommitment,
   upsertReference,
+  deleteReference,
 } from "@/lib/db-queries/sections";
 import { personalInfoSchema } from "@/lib/validations/personal-info";
 import { academicSchema } from "@/lib/validations/academic";
@@ -390,6 +391,9 @@ export async function saveDocumentsAction(
         contact_number: data.supervisor_ref_contact || null,
         email: data.supervisor_ref_email || null,
       });
+    } else {
+      // If supervisor fields are empty, remove any existing supervisor reference
+      await deleteReference(ctx.application!.id, "Supervisor_Volunteer");
     }
 
     await touchApplicationSaved(ctx.application!.id);
