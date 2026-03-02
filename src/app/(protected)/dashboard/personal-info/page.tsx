@@ -52,5 +52,7 @@ export default async function PersonalInfoPage() {
     emergency_phone: emergency?.phone_number || "",
   };
 
-  return <PersonalInfoForm defaultValues={defaults} />;
+  return (
+    <PersonalInfoForm key={JSON.stringify(defaults)} defaultValues={defaults} />
+  );
 }

@@ -50,7 +50,10 @@ export const personalInfoSchema = z
     hometown: z.string().min(1, "Hometown is required"),
     permanent_address: z.string().min(1, "Permanent address is required"),
     current_address: z.string().min(1, "Current address is required"),
-    emergency_name: z.string().min(1, "Emergency contact name is required"),
+    emergency_name: z
+      .string()
+      .min(1, "Emergency contact name is required")
+      .regex(/^[A-Za-z\s]+$/, "Name can only contain letters and spaces"),
     emergency_relationship: z.string().min(1, "Relationship is required"),
     emergency_phone: z
       .string()

@@ -71,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const dbUser = await findUserById(token.id as string);
         if (!dbUser) {
           // User was deleted — invalidate the token
-          return { ...token, id: null, role: null, emailVerified: null };
+          return null as unknown as typeof token;
         }
       }
 

@@ -82,30 +82,32 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
         : [],
     [selectedLocalCouncil],
   );
-  const isInitialMountRef = useRef(true);
+  const prevRegionRef = useRef(selectedRegion);
+  const prevLocalCouncilRef = useRef(selectedLocalCouncil);
 
-  // Clear dependent fields only when user changes region (not on initial mount)
+  // Clear dependent fields only when user actually changes region
   useEffect(() => {
-    if (!isInitialMountRef.current) {
-      setValue("local_council", "");
-      setValue("jamatkhana", "");
+    if (prevRegionRef.current !== selectedRegion) {
+      if (prevRegionRef.current !== "") {
+        setValue("local_council", "");
+        setValue("jamatkhana", "");
+      }
+      prevRegionRef.current = selectedRegion;
     }
   }, [selectedRegion, setValue]);
 
   // Clear jamatkhana when local council changes (if current value not in new list)
   useEffect(() => {
-    if (!isInitialMountRef.current && selectedLocalCouncil) {
-      const jks = getJamatkhanasByLocalCouncil(selectedLocalCouncil);
-      if (!jks.includes(watch("jamatkhana"))) {
-        setValue("jamatkhana", "");
+    if (prevLocalCouncilRef.current !== selectedLocalCouncil) {
+      if (prevLocalCouncilRef.current !== "" && selectedLocalCouncil) {
+        const jks = getJamatkhanasByLocalCouncil(selectedLocalCouncil);
+        if (!jks.includes(watch("jamatkhana"))) {
+          setValue("jamatkhana", "");
+        }
       }
+      prevLocalCouncilRef.current = selectedLocalCouncil;
     }
   }, [selectedLocalCouncil, setValue, watch]);
-
-  // Mark initial mount complete after first render effects have run
-  useEffect(() => {
-    isInitialMountRef.current = false;
-  }, []);
 
   async function onSubmit(data: PersonalInfoInput) {
     setIsLoading(true);
@@ -374,7 +376,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
               )}
             />
             <FormInput
-              label="Contact Phone"
+              label="Contact Number"
               required
               placeholder="03XX-XXXXXXX"
               error={errors.emergency_phone?.message}
