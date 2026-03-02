@@ -57,6 +57,7 @@ export interface LocationInfo {
   local_council: string;
   jamatkhana: string;
   has_relatives_in_gilgit_chitral: boolean;
+  relatives_name: string | null;
   relatives_address: string | null;
   relatives_contact: string | null;
 }
@@ -72,6 +73,12 @@ export interface EmergencyContact {
 export interface AcademicBackground {
   id: string;
   application_id: string;
+  matric_institution: string;
+  matric_grade: string;
+  matric_percentage: number;
+  intermediate_institution: string;
+  intermediate_grade: string;
+  intermediate_percentage: number;
   university_name: string;
   degree_program: string;
   major_specialization: string;
@@ -117,13 +124,17 @@ export interface SkillsCompetencies {
 export interface ExperienceEngagement {
   id: string;
   application_id: string;
-  description: string;
+  institution: string;
+  from_year: number;
+  to_year: number;
+  responsibility: string;
 }
 
 export interface MotivationAlignment {
   id: string;
   application_id: string;
   essay_response: string;
+  scenario_response: string;
 }
 
 export interface AvailabilityCommitment {
@@ -179,7 +190,7 @@ export interface FullApplication {
   placement: PlacementReadiness | null;
   internshipPrefs: InternshipPreference[];
   skills: SkillsCompetencies | null;
-  experience: ExperienceEngagement | null;
+  experience: ExperienceEngagement[];
   motivation: MotivationAlignment | null;
   availability: AvailabilityCommitment | null;
   documents: DocumentRecord[];

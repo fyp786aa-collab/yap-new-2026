@@ -44,6 +44,7 @@ export default async function PersonalInfoPage() {
     jamatkhana: location?.jamatkhana || "",
     has_relatives_gilgit_chitral:
       location?.has_relatives_in_gilgit_chitral || false,
+    relatives_name: location?.relatives_name || "",
     relatives_address: location?.relatives_address || "",
     relatives_contact: location?.relatives_contact || "",
     emergency_name: emergency?.name || "",

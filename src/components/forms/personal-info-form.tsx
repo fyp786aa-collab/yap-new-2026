@@ -59,6 +59,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
       emergency_relationship: "",
       emergency_phone: "",
       has_relatives_gilgit_chitral: false,
+      relatives_name: "",
       relatives_address: "",
       relatives_contact: "",
       ...defaultValues,
@@ -406,6 +407,12 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
           </div>
           {hasRelatives && (
             <div className="grid gap-4 sm:grid-cols-2 animate-fade-in">
+              <FormInput
+                label="Relative's Name"
+                required
+                error={errors.relatives_name?.message}
+                {...register("relatives_name")}
+              />
               <FormInput
                 label="Relatives Address"
                 required

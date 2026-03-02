@@ -12,6 +12,12 @@ export const motivationSchema = z.object({
     .refine((val) => wordCount(val) <= 150, {
       message: "Essay must not exceed 150 words",
     }),
+  scenario_response: z
+    .string()
+    .min(1, "Please answer the scenario-based question")
+    .refine((val) => wordCount(val) <= 250, {
+      message: "Response must not exceed 250 words",
+    }),
 });
 
 export type MotivationInput = z.infer<typeof motivationSchema>;

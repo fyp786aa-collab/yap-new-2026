@@ -14,7 +14,9 @@ import { ROUTES } from "@/lib/routes";
 import { SectionWrapper } from "@/components/forms/section-wrapper";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { ButtonPrimary } from "@/components/ui/button-primary";
-import { Save } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Save, BookOpen } from "lucide-react";
 
 interface MotivationFormProps {
   defaultValues?: Partial<MotivationInput>;
@@ -33,6 +35,7 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
     resolver: zodResolver(motivationSchema),
     defaultValues: {
       essay_response: "",
+      scenario_response: "",
       ...defaultValues,
     },
   });
@@ -85,6 +88,69 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
             />
           )}
         />
+
+        <Separator />
+
+        {/* Scenario-Based Question */}
+        <div className="space-y-4">
+          <Card className="border-blue-200 bg-blue-50/50">
+            <CardContent className="pt-5 pb-4">
+              <div className="flex gap-3">
+                <BookOpen className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-2">Scenario-Based Question</p>
+                  <p>
+                    You have recently relocated to a new city for this six-week
+                    residential internship. It is now your third week, and you
+                    are still adjusting to the institutional culture,
+                    expectations, and communication style. You have been
+                    assigned a collaborative project with other interns and team
+                    members; however, the instructions provided are broad rather
+                    than highly detailed, and team members have significantly
+                    different work styles. There are occasional
+                    misunderstandings regarding deadlines and responsibilities,
+                    and you feel hesitant to ask too many questions because you
+                    do not want to appear inexperienced. At the same time, you
+                    are living away from home, adapting to a new routine, and
+                    striving to perform at a high standard.
+                  </p>
+                  <p className="mt-2 font-medium">
+                    How would you approach this situation? In your response,
+                    explain how you would manage communication within the team,
+                    seek clarity without undermining your confidence, maintain
+                    professionalism while adapting to a new environment, and
+                    apply personal strategies to stay focused and resilient
+                    during this adjustment period. Please respond in detail,
+                    clearly outlining your thought process and actions.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Controller
+            control={control}
+            name="scenario_response"
+            defaultValue={defaultValues?.scenario_response ?? ""}
+            render={({ field }) => (
+              <FormTextarea
+                label=""
+                hint="Maximum 250 words."
+                maxWords={250}
+                disableCopyPaste
+                rows={8}
+                error={errors.scenario_response?.message}
+                value={field.value as string}
+                onChange={(e: any) => {
+                  if (typeof e === "string") field.onChange(e);
+                  else if (e?.target) field.onChange(e.target.value);
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            )}
+          />
+        </div>
 
         <div className="flex justify-end pt-4">
           <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>

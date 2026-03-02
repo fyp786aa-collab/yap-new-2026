@@ -28,8 +28,6 @@ const COMPLETION_KEY_MAP: Record<string, keyof SectionCompletion> = {
   "personal-info": "personalInfo",
   academic: "academic",
   placement: "placement",
-  "internship-prefs": "internshipPrefs",
-  skills: "skills",
   experience: "experience",
   motivation: "motivation",
   availability: "availability",
@@ -56,8 +54,17 @@ export default async function DashboardPage() {
 
   // Check if consent was given (application exists = consent given)
   const completion = await getSectionCompletion(application.id);
-  const completedCount = Object.values(completion).filter(Boolean).length;
-  const progressPercent = (completedCount / 10) * 100;
+  // The "placement" key in the grid now represents placement + internship prefs + skills combined
+  const combinedPlacementComplete =
+    completion.placement && completion.internshipPrefs && completion.skills;
+  const adjustedCompletion = {
+    ...completion,
+    placement: combinedPlacementComplete,
+  };
+  const completedCount =
+    Object.values(adjustedCompletion).filter(Boolean).length - 2; // -2 because internshipPrefs & skills are merged into placement
+  const totalSections = 8;
+  const progressPercent = (completedCount / totalSections) * 100;
 
   // Find first incomplete section
   const firstIncomplete = SECTION_ORDER.find((s) => {
@@ -73,8 +80,8 @@ export default async function DashboardPage() {
           Welcome to {APP_NAME}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Complete all 10 sections below to submit your application for YAP{" "}
-          {COHORT_YEAR}.
+          Complete all {totalSections} sections below to submit your application
+          for YAP {COHORT_YEAR}.
         </p>
       </div>
 
@@ -85,7 +92,7 @@ export default async function DashboardPage() {
             <div>
               <CardTitle className="text-lg">Application Progress</CardTitle>
               <CardDescription>
-                {completedCount} of 10 sections completed
+                {completedCount} of {totalSections} sections completed
               </CardDescription>
             </div>
             <div className="text-2xl font-bold text-yap-accent">
@@ -95,7 +102,7 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           <Progress value={progressPercent} className="h-2" />
-          {completedCount === 10 ? (
+          {completedCount === totalSections ? (
             <div className="mt-4 flex items-center gap-2 text-sm text-green-600">
               <FileCheck className="w-4 h-4" />
               All sections complete! You can now review and submit your
@@ -137,7 +144,11 @@ export default async function DashboardPage() {
       <div className="grid gap-3 sm:grid-cols-2">
         {SECTION_ORDER.map((section) => {
           const completionKey = COMPLETION_KEY_MAP[section.key];
-          const isComplete = completionKey ? completion[completionKey] : false;
+          const isComplete = completionKey
+            ? section.key === "placement"
+              ? combinedPlacementComplete
+              : completion[completionKey]
+            : false;
 
           return (
             <Link key={section.key} href={section.route}>
@@ -169,7 +180,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Review button */}
-      {completedCount === 10 && (
+      {completedCount === totalSections && (
         <div className="flex justify-center pt-4">
           <Link
             href={ROUTES.DASHBOARD.REVIEW}

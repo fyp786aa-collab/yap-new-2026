@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+function getAge(dob: string): number {
+  const birth = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 export const personalInfoSchema = z
   .object({
     full_name: z
@@ -11,7 +20,16 @@ export const personalInfoSchema = z
       .min(2, "Father name must be at least 2 characters")
       .max(150),
     gender: z.enum(["Male", "Female", "Other"], "Please select a gender"),
-    date_of_birth: z.string().min(1, "Date of birth is required"),
+    date_of_birth: z
+      .string()
+      .min(1, "Date of birth is required")
+      .refine(
+        (val) => {
+          const age = getAge(val);
+          return age >= 18 && age <= 23;
+        },
+        { message: "Applicant must be between 18 and 23 years of age" },
+      ),
     regional_council: z.string().min(1, "Regional council is required"),
     local_council: z.string().min(1, "Local council is required"),
     jamatkhana: z.string().min(1, "Jamatkhana is required"),
@@ -39,9 +57,22 @@ export const personalInfoSchema = z
       .min(1, "Emergency contact phone is required")
       .regex(/^03\d{2}-\d{7}$/, "Phone must be in format 03XX-XXXXXXX"),
     has_relatives_gilgit_chitral: z.boolean(),
+    relatives_name: z.string().optional().default(""),
     relatives_address: z.string().optional().default(""),
     relatives_contact: z.string().optional().default(""),
   })
+  .refine(
+    (data) => {
+      if (data.has_relatives_gilgit_chitral) {
+        return data.relatives_name && data.relatives_name.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Please provide relative's name",
+      path: ["relatives_name"],
+    },
+  )
   .refine(
     (data) => {
       if (data.has_relatives_gilgit_chitral) {

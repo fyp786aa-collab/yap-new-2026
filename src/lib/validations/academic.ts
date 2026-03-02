@@ -1,6 +1,30 @@
 import { z } from "zod";
 
 export const academicSchema = z.object({
+  // Matriculation
+  matric_institution: z
+    .string()
+    .min(1, "Matriculation institution is required")
+    .max(200),
+  matric_grade: z.string().min(1, "Matriculation grade is required").max(10),
+  matric_percentage: z.coerce
+    .number()
+    .min(0, "Percentage must be a positive number")
+    .max(100, "Percentage cannot exceed 100"),
+  // Intermediate
+  intermediate_institution: z
+    .string()
+    .min(1, "Intermediate institution is required")
+    .max(200),
+  intermediate_grade: z
+    .string()
+    .min(1, "Intermediate grade is required")
+    .max(10),
+  intermediate_percentage: z.coerce
+    .number()
+    .min(0, "Percentage must be a positive number")
+    .max(100, "Percentage cannot exceed 100"),
+  // University
   university_name: z.string().min(1, "University name is required").max(200),
   degree_program: z.string().min(1, "Degree program is required").max(200),
   major_specialization: z

@@ -28,9 +28,10 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isDirty },
+    formState: { errors, isValid },
   } = useForm<SkillsInput>({
     resolver: zodResolver(skillsSchema),
+    mode: "onChange",
     defaultValues: {
       communication: 0,
       team_collaboration: 0,
@@ -90,7 +91,7 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
                     label={skill.label}
                     value={value || 0}
                     onChange={(v) =>
-                      setValue(fieldName, v, { shouldValidate: true })
+                      setValue(fieldName, v, { shouldValidate: true, shouldDirty: true })
                     }
                   />
                   {error && (
@@ -110,7 +111,7 @@ export function SkillsForm({ defaultValues }: SkillsFormProps) {
         />
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading} disabled={!isDirty}>
+          <ButtonPrimary type="submit" loading={isLoading} disabled={!isValid}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

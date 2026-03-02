@@ -18,6 +18,12 @@ export default async function AcademicPage() {
 
   const defaults = academic
     ? {
+        matric_institution: academic.matric_institution || "",
+        matric_grade: academic.matric_grade || "",
+        matric_percentage: academic.matric_percentage,
+        intermediate_institution: academic.intermediate_institution || "",
+        intermediate_grade: academic.intermediate_grade || "",
+        intermediate_percentage: academic.intermediate_percentage,
         university_name: academic.university_name,
         degree_program: academic.degree_program,
         major_specialization: academic.major_specialization,

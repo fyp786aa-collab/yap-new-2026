@@ -17,6 +17,7 @@ import { SectionWrapper } from "@/components/forms/section-wrapper";
 import { FormInput } from "@/components/ui/form-input";
 import { FormSelect } from "@/components/ui/form-select";
 import { ButtonPrimary } from "@/components/ui/button-primary";
+import { Separator } from "@/components/ui/separator";
 import { Save } from "lucide-react";
 
 interface AcademicFormProps {
@@ -35,6 +36,12 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
   } = useForm<AcademicInput>({
     resolver: zodResolver(academicSchema),
     defaultValues: {
+      matric_institution: "",
+      matric_grade: "",
+      matric_percentage: undefined,
+      intermediate_institution: "",
+      intermediate_grade: "",
+      intermediate_percentage: undefined,
       university_name: "",
       degree_program: "",
       major_specialization: "",
@@ -78,64 +85,136 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
       description="Tell us about your education"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+        {/* Matriculation */}
+        <div>
+          <h3 className="text-sm font-semibold text-yap-primary mb-3">
+            Matriculation
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-3">
             <FormInput
-              label="University/Institution Name"
+              label="Institution Name"
               required
-              error={errors.university_name?.message}
-              {...register("university_name")}
+              error={errors.matric_institution?.message}
+              {...register("matric_institution")}
+            />
+            <FormInput
+              label="Grade"
+              required
+              placeholder="e.g., A+, A, B"
+              error={errors.matric_grade?.message}
+              {...register("matric_grade")}
+            />
+            <FormInput
+              label="Percentage"
+              type="number"
+              required
+              placeholder="e.g., 85"
+              step="0.01"
+              error={errors.matric_percentage?.message}
+              {...register("matric_percentage")}
             />
           </div>
-          <FormInput
-            label="Degree Program"
-            required
-            error={errors.degree_program?.message}
-            {...register("degree_program")}
-          />
-          <FormInput
-            label="Major/Specialization"
-            required
-            error={errors.major_specialization?.message}
-            {...register("major_specialization")}
-          />
-          <Controller
-            control={control}
-            name="current_year_of_study"
-            defaultValue={
-              defaultValues?.current_year_of_study
-                ? String(defaultValues.current_year_of_study)
-                : ""
-            }
-            render={({ field }) => (
-              <FormSelect
-                label="Current Year of Study"
+        </div>
+
+        <Separator />
+
+        {/* Intermediate */}
+        <div>
+          <h3 className="text-sm font-semibold text-yap-primary mb-3">
+            Intermediate
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <FormInput
+              label="Institution Name"
+              required
+              error={errors.intermediate_institution?.message}
+              {...register("intermediate_institution")}
+            />
+            <FormInput
+              label="Grade"
+              required
+              placeholder="e.g., A+, A, B"
+              error={errors.intermediate_grade?.message}
+              {...register("intermediate_grade")}
+            />
+            <FormInput
+              label="Percentage"
+              type="number"
+              required
+              placeholder="e.g., 85"
+              step="0.01"
+              error={errors.intermediate_percentage?.message}
+              {...register("intermediate_percentage")}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* University */}
+        <div>
+          <h3 className="text-sm font-semibold text-yap-primary mb-3">
+            University / Higher Education
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <FormInput
+                label="University/Institution Name"
                 required
-                options={YEAR_OF_STUDY_OPTIONS.map((y) => ({
-                  label: y.label,
-                  value: String(y.value),
-                }))}
-                error={errors.current_year_of_study?.message}
-                value={field.value as string | number}
-                onChange={(e: any) => {
-                  if (typeof e === "string") field.onChange(e);
-                  else if (e?.target) field.onChange(e.target.value);
-                }}
-                onBlur={field.onBlur}
-                name={field.name}
+                error={errors.university_name?.message}
+                {...register("university_name")}
               />
-            )}
-          />
-          <FormInput
-            label="CGPA / Percentage"
-            type="number"
-            required
-            placeholder="e.g., 3.5 or 85"
-            hint="Enter CGPA (0-4) or percentage (0-100)"
-            step="0.01"
-            error={errors.cgpa_percentage?.message}
-            {...register("cgpa_percentage")}
-          />
+            </div>
+            <FormInput
+              label="Degree Program"
+              required
+              error={errors.degree_program?.message}
+              {...register("degree_program")}
+            />
+            <FormInput
+              label="Major/Specialization"
+              required
+              error={errors.major_specialization?.message}
+              {...register("major_specialization")}
+            />
+            <Controller
+              control={control}
+              name="current_year_of_study"
+              defaultValue={
+                defaultValues?.current_year_of_study
+                  ? String(defaultValues.current_year_of_study)
+                  : ""
+              }
+              render={({ field }) => (
+                <FormSelect
+                  label="Current Year of Study"
+                  required
+                  options={YEAR_OF_STUDY_OPTIONS.map((y) => ({
+                    label: y.label,
+                    value: String(y.value),
+                  }))}
+                  error={errors.current_year_of_study?.message}
+                  value={field.value as string | number}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
+            <FormInput
+              label="CGPA / Percentage"
+              type="number"
+              required
+              placeholder="e.g., 3.5 or 85"
+              hint="Enter CGPA (0-4) or percentage (0-100)"
+              step="0.01"
+              error={errors.cgpa_percentage?.message}
+              {...register("cgpa_percentage")}
+            />
+          </div>
         </div>
 
         <div>

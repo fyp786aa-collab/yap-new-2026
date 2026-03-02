@@ -73,12 +73,39 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
               <Video className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
               <div className="text-sm text-blue-700">
                 <p className="font-medium">Video Guidelines</p>
+                <p className="mt-2">
+                  YAP is a highly competitive six-week residential internship
+                  programme designed to develop participants&apos; professional
+                  competence, leadership capacity, and meaningful community
+                  impact.
+                </p>
+                <p className="mt-2">
+                  Share what genuinely motivates you to be part of this
+                  programme, how you believe this experience will contribute to
+                  your professional growth and long-term aspirations, and in
+                  what ways you intend to use the skills, exposure, and learning
+                  gained to create a positive and lasting impact within your
+                  community. Your video response should reflect clarity and
+                  demonstrate your understanding of the values and rigor of the
+                  programme.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Instructions */}
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-700">
+                <p className="font-medium">Instructions</p>
                 <ul className="mt-2 space-y-1 list-disc pl-4">
-                  <li>Record a 1-2 minute introduction video</li>
-                  <li>
-                    Briefly introduce yourself and your motivation for YAP
-                  </li>
-                  <li>Speak clearly and face the camera</li>
+                  <li>Language can be Urdu or English</li>
+                  <li>Should have your own genuine thoughts</li>
+                  <li>Don&apos;t read from the screen</li>
+                  <li>Record a 1–2 minute video</li>
                   <li>Maximum file size: 100MB</li>
                   <li>Accepted formats: MP4, MOV, AVI, WebM</li>
                 </ul>

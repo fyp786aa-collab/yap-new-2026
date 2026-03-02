@@ -99,6 +99,9 @@ export async function savePersonalInfoAction(
       local_council: data.local_council,
       jamatkhana: data.jamatkhana,
       has_relatives_in_gilgit_chitral: data.has_relatives_gilgit_chitral,
+      relatives_name: data.has_relatives_gilgit_chitral
+        ? data.relatives_name || null
+        : null,
       relatives_address: data.has_relatives_gilgit_chitral
         ? data.relatives_address || null
         : null,
@@ -138,6 +141,12 @@ export async function saveAcademicAction(
 
     const data = parsed.data;
     await upsertAcademicBackground(ctx.application!.id, {
+      matric_institution: data.matric_institution,
+      matric_grade: data.matric_grade,
+      matric_percentage: data.matric_percentage,
+      intermediate_institution: data.intermediate_institution,
+      intermediate_grade: data.intermediate_grade,
+      intermediate_percentage: data.intermediate_percentage,
       university_name: data.university_name,
       degree_program: data.degree_program,
       major_specialization: data.major_specialization,
@@ -255,7 +264,12 @@ export async function saveSkillsAction(
 // ==================== SECTION 6: EXPERIENCE ====================
 
 export async function saveExperienceAction(formData: {
-  description: string;
+  experiences: Array<{
+    institution: string;
+    from_year: number;
+    to_year: number;
+    responsibility: string;
+  }>;
 }): Promise<ActionResponse> {
   try {
     const ctx = await getAppContext();
@@ -268,7 +282,7 @@ export async function saveExperienceAction(formData: {
 
     await upsertExperienceEngagement(
       ctx.application!.id,
-      parsed.data.description,
+      parsed.data.experiences,
     );
 
     await touchApplicationSaved(ctx.application!.id);
@@ -283,6 +297,7 @@ export async function saveExperienceAction(formData: {
 
 export async function saveMotivationAction(formData: {
   essay_response: string;
+  scenario_response: string;
 }): Promise<ActionResponse> {
   try {
     const ctx = await getAppContext();
@@ -296,6 +311,7 @@ export async function saveMotivationAction(formData: {
     await upsertMotivationAlignment(
       ctx.application!.id,
       parsed.data.essay_response,
+      parsed.data.scenario_response,
     );
 
     await touchApplicationSaved(ctx.application!.id);

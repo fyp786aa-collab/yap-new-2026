@@ -14,13 +14,19 @@ export default async function ExperiencePage() {
     redirect(ROUTES.DASHBOARD.CONSENT);
   if (application.status === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
 
-  const experience = await getExperienceEngagement(application.id);
+  const experiences = await getExperienceEngagement(application.id);
 
-  return (
-    <ExperienceForm
-      defaultValues={
-        experience ? { description: experience.description } : undefined
-      }
-    />
-  );
+  const defaults =
+    experiences && experiences.length > 0
+      ? {
+          experiences: experiences.map((e: any) => ({
+            institution: e.institution,
+            from_year: e.from_year,
+            to_year: e.to_year,
+            responsibility: e.responsibility,
+          })),
+        }
+      : undefined;
+
+  return <ExperienceForm defaultValues={defaults} />;
 }

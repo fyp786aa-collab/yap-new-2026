@@ -9,6 +9,7 @@ export async function upsertLocationInfo(
     local_council: string;
     jamatkhana: string;
     has_relatives_in_gilgit_chitral: boolean;
+    relatives_name: string | null;
     relatives_address: string | null;
     relatives_contact: string | null;
   },
@@ -16,13 +17,14 @@ export async function upsertLocationInfo(
   const sql = getDb();
   try {
     await sql`
-      INSERT INTO location_info (application_id, regional_council, local_council, jamatkhana, has_relatives_in_gilgit_chitral, relatives_address, relatives_contact)
-      VALUES (${applicationId}, ${data.regional_council}, ${data.local_council}, ${data.jamatkhana}, ${data.has_relatives_in_gilgit_chitral}, ${data.relatives_address}, ${data.relatives_contact})
+      INSERT INTO location_info (application_id, regional_council, local_council, jamatkhana, has_relatives_in_gilgit_chitral, relatives_name, relatives_address, relatives_contact)
+      VALUES (${applicationId}, ${data.regional_council}, ${data.local_council}, ${data.jamatkhana}, ${data.has_relatives_in_gilgit_chitral}, ${data.relatives_name}, ${data.relatives_address}, ${data.relatives_contact})
       ON CONFLICT (application_id) DO UPDATE SET
         regional_council = ${data.regional_council},
         local_council = ${data.local_council},
         jamatkhana = ${data.jamatkhana},
         has_relatives_in_gilgit_chitral = ${data.has_relatives_in_gilgit_chitral},
+        relatives_name = ${data.relatives_name},
         relatives_address = ${data.relatives_address},
         relatives_contact = ${data.relatives_contact}
     `;
@@ -61,6 +63,12 @@ export async function upsertEmergencyContact(
 export async function upsertAcademicBackground(
   applicationId: string,
   data: {
+    matric_institution: string;
+    matric_grade: string;
+    matric_percentage: number;
+    intermediate_institution: string;
+    intermediate_grade: string;
+    intermediate_percentage: number;
     university_name: string;
     degree_program: string;
     major_specialization: string;
@@ -75,9 +83,15 @@ export async function upsertAcademicBackground(
   const sql = getDb();
   try {
     await sql`
-      INSERT INTO academic_background (application_id, university_name, degree_program, major_specialization, current_year_of_study, cgpa_percentage, transcript_file_path, expected_graduation_month, expected_graduation_year, re_education_level)
-      VALUES (${applicationId}, ${data.university_name}, ${data.degree_program}, ${data.major_specialization}, ${data.current_year_of_study}, ${data.cgpa_percentage}, ${data.transcript_file_path}, ${data.expected_graduation_month}, ${data.expected_graduation_year}, ${data.re_education_level})
+      INSERT INTO academic_background (application_id, matric_institution, matric_grade, matric_percentage, intermediate_institution, intermediate_grade, intermediate_percentage, university_name, degree_program, major_specialization, current_year_of_study, cgpa_percentage, transcript_file_path, expected_graduation_month, expected_graduation_year, re_education_level)
+      VALUES (${applicationId}, ${data.matric_institution}, ${data.matric_grade}, ${data.matric_percentage}, ${data.intermediate_institution}, ${data.intermediate_grade}, ${data.intermediate_percentage}, ${data.university_name}, ${data.degree_program}, ${data.major_specialization}, ${data.current_year_of_study}, ${data.cgpa_percentage}, ${data.transcript_file_path}, ${data.expected_graduation_month}, ${data.expected_graduation_year}, ${data.re_education_level})
       ON CONFLICT (application_id) DO UPDATE SET
+        matric_institution = ${data.matric_institution},
+        matric_grade = ${data.matric_grade},
+        matric_percentage = ${data.matric_percentage},
+        intermediate_institution = ${data.intermediate_institution},
+        intermediate_grade = ${data.intermediate_grade},
+        intermediate_percentage = ${data.intermediate_percentage},
         university_name = ${data.university_name},
         degree_program = ${data.degree_program},
         major_specialization = ${data.major_specialization},
@@ -191,15 +205,22 @@ export async function upsertSkillsCompetencies(
 
 export async function upsertExperienceEngagement(
   applicationId: string,
-  description: string,
+  experiences: Array<{
+    institution: string;
+    from_year: number;
+    to_year: number;
+    responsibility: string;
+  }>,
 ) {
-  const sql = getDb();
   try {
-    await sql`
-      INSERT INTO experience_engagement (application_id, description)
-      VALUES (${applicationId}, ${description})
-      ON CONFLICT (application_id) DO UPDATE SET description = ${description}
-    `;
+    await withTransaction((txn) => [
+      txn`DELETE FROM voluntary_experiences WHERE application_id = ${applicationId}`,
+      ...experiences.map(
+        (exp) =>
+          txn`INSERT INTO voluntary_experiences (application_id, institution, from_year, to_year, responsibility)
+              VALUES (${applicationId}, ${exp.institution}, ${exp.from_year}, ${exp.to_year}, ${exp.responsibility})`,
+      ),
+    ]);
     return { success: true };
   } catch (error) {
     console.error("Error upserting experience:", error);
@@ -212,13 +233,16 @@ export async function upsertExperienceEngagement(
 export async function upsertMotivationAlignment(
   applicationId: string,
   essayResponse: string,
+  scenarioResponse: string,
 ) {
   const sql = getDb();
   try {
     await sql`
-      INSERT INTO motivation_alignment (application_id, essay_response)
-      VALUES (${applicationId}, ${essayResponse})
-      ON CONFLICT (application_id) DO UPDATE SET essay_response = ${essayResponse}
+      INSERT INTO motivation_alignment (application_id, essay_response, scenario_response)
+      VALUES (${applicationId}, ${essayResponse}, ${scenarioResponse})
+      ON CONFLICT (application_id) DO UPDATE SET
+        essay_response = ${essayResponse},
+        scenario_response = ${scenarioResponse}
     `;
     return { success: true };
   } catch (error) {
@@ -407,11 +431,11 @@ export async function getExperienceEngagement(applicationId: string) {
   const sql = getDb();
   try {
     const rows =
-      await sql`SELECT * FROM experience_engagement WHERE application_id = ${applicationId}`;
-    return rows[0] || null;
+      await sql`SELECT * FROM voluntary_experiences WHERE application_id = ${applicationId} ORDER BY from_year`;
+    return rows;
   } catch (error) {
     console.error("Error getting experience:", error);
-    return null;
+    return [];
   }
 }
 

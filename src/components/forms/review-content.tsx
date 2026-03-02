@@ -23,8 +23,6 @@ const COMPLETION_KEY_MAP: Record<string, keyof SectionCompletion> = {
   "personal-info": "personalInfo",
   academic: "academic",
   placement: "placement",
-  "internship-prefs": "internshipPrefs",
-  skills: "skills",
   experience: "experience",
   motivation: "motivation",
   availability: "availability",
@@ -62,10 +60,9 @@ export function ReviewContent({
     Record<string, unknown>
   >;
   const skills = fullApplication?.skills as Record<string, unknown> | null;
-  const experience = fullApplication?.experience as Record<
-    string,
-    unknown
-  > | null;
+  const experience = ((fullApplication?.experience as unknown) || []) as Array<
+    Record<string, unknown>
+  >;
   const motivation = fullApplication?.motivation as Record<
     string,
     unknown
@@ -210,6 +207,22 @@ export function ReviewContent({
             {academic && (
               <div className="grid gap-2 sm:grid-cols-2 text-sm">
                 <Field
+                  label="Matric Institution"
+                  value={academic.matric_institution as string}
+                />
+                <Field
+                  label="Matric Grade / %"
+                  value={`${academic.matric_grade} (${academic.matric_percentage}%)`}
+                />
+                <Field
+                  label="Intermediate Institution"
+                  value={academic.intermediate_institution as string}
+                />
+                <Field
+                  label="Intermediate Grade / %"
+                  value={`${academic.intermediate_grade} (${academic.intermediate_percentage}%)`}
+                />
+                <Field
                   label="University"
                   value={academic.university_name as string}
                 />
@@ -238,12 +251,19 @@ export function ReviewContent({
           </ReviewSection>
 
           <ReviewSection
-            title="3. Placement Readiness"
+            title="3. Placement, Preferences & Skills"
             editRoute={ROUTES.DASHBOARD.PLACEMENT}
-            complete={completion.placement}
+            complete={
+              completion.placement &&
+              completion.internshipPrefs &&
+              completion.skills
+            }
           >
             {placement && (
-              <div className="text-sm space-y-2">
+              <div className="text-sm space-y-2 mb-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Placement Readiness
+                </p>
                 <Field
                   label="Willing for GB/Chitral"
                   value={placement.willing_gilgit_chitral ? "Yes" : "No"}
@@ -260,15 +280,11 @@ export function ReviewContent({
                 )}
               </div>
             )}
-          </ReviewSection>
-
-          <ReviewSection
-            title="4. Internship Preferences"
-            editRoute={ROUTES.DASHBOARD.INTERNSHIP_PREFS}
-            complete={completion.internshipPrefs}
-          >
             {prefs.length > 0 && (
-              <div className="text-sm space-y-1">
+              <div className="text-sm space-y-1 mb-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Internship Preferences
+                </p>
                 {prefs.map((p) => {
                   const agency = AGENCIES.find((a) => a.value === p.agency);
                   return (
@@ -285,15 +301,13 @@ export function ReviewContent({
                 })}
               </div>
             )}
-          </ReviewSection>
-
-          <ReviewSection
-            title="5. Skills & Competencies"
-            editRoute={ROUTES.DASHBOARD.SKILLS}
-            complete={completion.skills}
-          >
             {skills && (
               <div className="grid gap-2 sm:grid-cols-2 text-sm">
+                <div className="sm:col-span-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Skills & Competencies
+                  </p>
+                </div>
                 <Field
                   label="Communication"
                   value={`${skills.communication}/5`}
@@ -332,14 +346,29 @@ export function ReviewContent({
           </ReviewSection>
 
           <ReviewSection
-            title="6. Experience & Engagement"
+            title="4. Experience & Engagement"
             editRoute={ROUTES.DASHBOARD.EXPERIENCE}
             complete={completion.experience}
           >
-            {experience && (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {experience.description as string}
-              </p>
+            {experience.length > 0 && (
+              <div className="text-sm space-y-3">
+                {experience.map((exp, i) => (
+                  <div
+                    key={i}
+                    className="border-b border-gray-100 pb-2 last:border-0"
+                  >
+                    <span className="font-medium">
+                      {exp.institution as string}
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      ({exp.from_year as number} – {exp.to_year as number})
+                    </span>
+                    <p className="text-muted-foreground mt-0.5">
+                      {exp.responsibility as string}
+                    </p>
+                  </div>
+                ))}
+              </div>
             )}
           </ReviewSection>
 
@@ -349,14 +378,31 @@ export function ReviewContent({
             complete={completion.motivation}
           >
             {motivation && (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {motivation.essay_response as string}
-              </p>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Reflection Essay
+                  </p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {motivation.essay_response as string}
+                  </p>
+                </div>
+                {(motivation as any).scenario_response && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      Scenario Response
+                    </p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {(motivation as any).scenario_response as string}
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </ReviewSection>
 
           <ReviewSection
-            title="8. Availability & Commitment"
+            title="6. Availability & Commitment"
             editRoute={ROUTES.DASHBOARD.AVAILABILITY}
             complete={completion.availability}
           >
@@ -371,7 +417,7 @@ export function ReviewContent({
           </ReviewSection>
 
           <ReviewSection
-            title="9. Documents & References"
+            title="7. Documents & References"
             editRoute={ROUTES.DASHBOARD.DOCUMENTS}
             complete={completion.documents}
           >
@@ -394,7 +440,7 @@ export function ReviewContent({
           </ReviewSection>
 
           <ReviewSection
-            title="10. Video Submission"
+            title="8. Video Submission"
             editRoute={ROUTES.DASHBOARD.VIDEO}
             complete={completion.video}
           >

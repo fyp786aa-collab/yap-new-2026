@@ -19,7 +19,12 @@ export default async function MotivationPage() {
   return (
     <MotivationForm
       defaultValues={
-        motivation ? { essay_response: motivation.essay_response } : undefined
+        motivation
+          ? {
+              essay_response: motivation.essay_response,
+              scenario_response: (motivation as any).scenario_response || "",
+            }
+          : undefined
       }
     />
   );
