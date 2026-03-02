@@ -18,7 +18,8 @@ import { FormInput } from "@/components/ui/form-input";
 import { FormSelect } from "@/components/ui/form-select";
 import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Separator } from "@/components/ui/separator";
-import { Save } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Save, Info } from "lucide-react";
 
 const GRADE_OPTIONS = [
   { value: "A+", label: "A+" },
@@ -95,6 +96,31 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
       description="Tell us about your education"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* A/O Level Guidance */}
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p className="font-medium">O-Level / A-Level Students</p>
+                <p className="mt-1">
+                  If you studied O-Levels or A-Levels, please enter the
+                  equivalent Matric / Intermediate percentage. You can use the{" "}
+                  <a
+                    href="https://maqsad.io/a-level-equivalence-calculator"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium hover:text-blue-900"
+                  >
+                    Maqsad Equivalence Calculator
+                  </a>{" "}
+                  to convert your grades.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Matriculation */}
         <div>
           <h3 className="text-sm font-semibold text-yap-primary mb-3">

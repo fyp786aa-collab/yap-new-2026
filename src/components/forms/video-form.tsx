@@ -104,7 +104,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
                   <li>Language can be Urdu or English</li>
                   <li>Should have your own genuine thoughts</li>
                   <li>Don&apos;t read from the screen</li>
-                  <li>Record a 1–2 minute video</li>
+                  <li>Record a video (maximum 2 minutes)</li>
                   <li>Maximum file size: 100MB</li>
                   <li>Accepted formats: MP4, MOV, AVI, WebM</li>
                 </ul>
@@ -117,6 +117,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
           label="Introduction Video"
           accept=".mp4,.mov,.avi,.webm"
           maxSize={100 * 1024 * 1024}
+          maxDuration={120}
           uploadUrl={ROUTES.API.UPLOAD}
           uploadParams={{ applicationId, documentType: "Video" }}
           currentFile={

@@ -20,6 +20,8 @@ interface FileUploadProps {
   loading?: boolean;
   fileType?: "CV" | "Transcript" | "Video";
   required?: boolean;
+  /** Maximum allowed duration in seconds (for video files) */
+  maxDuration?: number;
 }
 
 export function FileUpload({
@@ -36,6 +38,7 @@ export function FileUpload({
   loading: externalLoading,
   fileType,
   required,
+  maxDuration,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -69,6 +72,36 @@ export function FileUpload({
     if (!matchesType) {
       setLocalError("Invalid file type");
       return;
+    }
+
+    // Check video duration if maxDuration is set
+    if (maxDuration && file.type.startsWith("video/")) {
+      const durationOk = await new Promise<boolean>((resolve) => {
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.onloadedmetadata = () => {
+          URL.revokeObjectURL(video.src);
+          if (video.duration > maxDuration) {
+            const mins = Math.floor(maxDuration / 60);
+            const secs = maxDuration % 60;
+            const label = secs
+              ? `${mins}m ${secs}s`
+              : `${mins} minute${mins > 1 ? "s" : ""}`;
+            setLocalError(
+              `Video must be ${label} or shorter (yours is ${Math.floor(video.duration / 60)}m ${Math.round(video.duration % 60)}s)`,
+            );
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        };
+        video.onerror = () => {
+          URL.revokeObjectURL(video.src);
+          resolve(true); // allow upload if we can't determine duration
+        };
+        video.src = URL.createObjectURL(file);
+      });
+      if (!durationOk) return;
     }
 
     if (uploadUrl) {
