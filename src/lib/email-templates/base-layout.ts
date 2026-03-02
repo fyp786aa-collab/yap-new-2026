@@ -20,7 +20,7 @@ export function emailBaseLayout(content: string): string {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <img src="${process.env.NEXT_PUBLIC_APP_URL}/YAP Logo.png" alt="YAP Logo" width="56" height="56" style="border-radius: 12px; margin-bottom: 16px; object-fit: contain;" />
+                    <img src="${process.env.APP_URL}/YAP Logo.png" alt="YAP Logo" width="56" height="56" style="border-radius: 12px; margin-bottom: 16px; object-fit: contain;" />
                   </td>
                 </tr>
                 <tr>
