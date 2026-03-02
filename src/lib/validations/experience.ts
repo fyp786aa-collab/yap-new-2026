@@ -21,14 +21,19 @@ const voluntaryExperienceSchema = z.object({
     .max(150, "Responsibility must be one line (max 150 characters)"),
 });
 
+const validatedExperienceSchema = voluntaryExperienceSchema.refine(
+  (e) => e.to_year >= e.from_year,
+  {
+    message: "To Year must be equal to or after From Year",
+    path: ["to_year"],
+  },
+);
+
 export const experienceSchema = z.object({
   experiences: z
-    .array(voluntaryExperienceSchema)
+    .array(validatedExperienceSchema)
     .min(1, "Please add at least one voluntary experience")
-    .max(5, "Maximum 5 voluntary experiences allowed")
-    .refine((exps) => exps.every((e) => e.to_year >= e.from_year), {
-      message: "To Year must be equal to or after From Year",
-    }),
+    .max(5, "Maximum 5 voluntary experiences allowed"),
 });
 
 export type VoluntaryExperience = z.infer<typeof voluntaryExperienceSchema>;

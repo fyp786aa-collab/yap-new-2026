@@ -29,7 +29,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
     setValue,
     watch,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<AvailabilityInput>({
     resolver: zodResolver(availabilitySchema),
     defaultValues: {
@@ -121,7 +121,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
           <ButtonPrimary
             onClick={handleSubmit(onSubmit)}
             loading={isLoading}
-            disabled={!isDirty}
+            disabled={!available}
           >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue

@@ -20,6 +20,17 @@ import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Separator } from "@/components/ui/separator";
 import { Save } from "lucide-react";
 
+const GRADE_OPTIONS = [
+  { value: "A+", label: "A+" },
+  { value: "A", label: "A" },
+  { value: "B+", label: "B+" },
+  { value: "B", label: "B" },
+  { value: "C+", label: "C+" },
+  { value: "C", label: "C" },
+  { value: "D", label: "D" },
+  { value: "F", label: "F" },
+];
+
 interface AcademicFormProps {
   defaultValues?: Partial<AcademicInput>;
 }
@@ -37,10 +48,10 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
     resolver: zodResolver(academicSchema),
     defaultValues: {
       matric_institution: "",
-      matric_grade: "",
+      matric_grade: undefined,
       matric_percentage: undefined,
       intermediate_institution: "",
-      intermediate_grade: "",
+      intermediate_grade: undefined,
       intermediate_percentage: undefined,
       university_name: "",
       degree_program: "",
@@ -96,12 +107,25 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
               error={errors.matric_institution?.message}
               {...register("matric_institution")}
             />
-            <FormInput
-              label="Grade"
-              required
-              placeholder="e.g., A+, A, B"
-              error={errors.matric_grade?.message}
-              {...register("matric_grade")}
+            <Controller
+              control={control}
+              name="matric_grade"
+              defaultValue={(defaultValues?.matric_grade ?? "") as any}
+              render={({ field }) => (
+                <FormSelect
+                  label="Grade"
+                  required
+                  options={GRADE_OPTIONS}
+                  error={errors.matric_grade?.message}
+                  value={field.value as string}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
             <FormInput
               label="Percentage"
@@ -129,12 +153,25 @@ export function AcademicForm({ defaultValues }: AcademicFormProps) {
               error={errors.intermediate_institution?.message}
               {...register("intermediate_institution")}
             />
-            <FormInput
-              label="Grade"
-              required
-              placeholder="e.g., A+, A, B"
-              error={errors.intermediate_grade?.message}
-              {...register("intermediate_grade")}
+            <Controller
+              control={control}
+              name="intermediate_grade"
+              defaultValue={(defaultValues?.intermediate_grade ?? "") as any}
+              render={({ field }) => (
+                <FormSelect
+                  label="Grade"
+                  required
+                  options={GRADE_OPTIONS}
+                  error={errors.intermediate_grade?.message}
+                  value={field.value as string}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
             <FormInput
               label="Percentage"

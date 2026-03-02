@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -47,6 +47,7 @@ export function CombinedPlacementForm({
     handleSubmit: handleSubmitPlacement,
     setValue: setPlacementValue,
     watch: watchPlacement,
+    control: controlPlacement,
     formState: { errors: placementErrors },
   } = useForm<PlacementInput>({
     resolver: zodResolver(placementSchema),
@@ -235,21 +236,47 @@ export function CombinedPlacementForm({
 
             {stayedAway && (
               <div className="animate-fade-in">
-                <FormTextarea
-                  label="Please briefly describe your experience of living away from home, including any challenges or personal growth you experienced"
-                  required
-                  error={placementErrors.stay_away_description?.message}
-                  {...registerPlacement("stay_away_description")}
+                <Controller
+                  control={controlPlacement}
+                  name="stay_away_description"
+                  render={({ field }) => (
+                    <FormTextarea
+                      label="Please briefly describe your experience of living away from home, including any challenges or personal growth you experienced"
+                      required
+                      maxWords={150}
+                      disableCopyPaste
+                      error={placementErrors.stay_away_description?.message}
+                      value={field.value as string}
+                      onChange={(e: any) => {
+                        if (typeof e === "string") field.onChange(e);
+                        else if (e?.target) field.onChange(e.target.value);
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  )}
                 />
               </div>
             )}
 
-            <FormTextarea
-              label="Do you have any medical conditions or allergies we should know about?"
-              hint="Maximum 100 words. Leave blank if not applicable."
-              maxWords={100}
-              error={placementErrors.medical_conditions?.message}
-              {...registerPlacement("medical_conditions")}
+            <Controller
+              control={controlPlacement}
+              name="medical_conditions"
+              render={({ field }) => (
+                <FormTextarea
+                  label="Do you have any medical conditions or allergies we should know about?"
+                  hint="Maximum 100 words. Leave blank if not applicable."
+                  maxWords={100}
+                  error={placementErrors.medical_conditions?.message}
+                  value={field.value as string}
+                  onChange={(e: any) => {
+                    if (typeof e === "string") field.onChange(e);
+                    else if (e?.target) field.onChange(e.target.value);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
             />
           </div>
         </div>
@@ -322,7 +349,11 @@ export function CombinedPlacementForm({
         </div>
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary
+            type="submit"
+            loading={isLoading}
+            disabled={!willingGC}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

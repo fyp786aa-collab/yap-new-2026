@@ -6,23 +6,24 @@ export const academicSchema = z.object({
     .string()
     .min(1, "Matriculation institution is required")
     .max(200),
-  matric_grade: z.string().min(1, "Matriculation grade is required").max(10),
+  matric_grade: z.enum(["A+", "A", "B+", "B", "C+", "C", "D", "F"], {
+    message: "Please select a valid grade",
+  }),
   matric_percentage: z.coerce
     .number()
-    .min(0, "Percentage must be a positive number")
+    .gt(0, "Percentage must be greater than 0")
     .max(100, "Percentage cannot exceed 100"),
   // Intermediate
   intermediate_institution: z
     .string()
     .min(1, "Intermediate institution is required")
     .max(200),
-  intermediate_grade: z
-    .string()
-    .min(1, "Intermediate grade is required")
-    .max(10),
+  intermediate_grade: z.enum(["A+", "A", "B+", "B", "C+", "C", "D", "F"], {
+    message: "Please select a valid grade",
+  }),
   intermediate_percentage: z.coerce
     .number()
-    .min(0, "Percentage must be a positive number")
+    .gt(0, "Percentage must be greater than 0")
     .max(100, "Percentage cannot exceed 100"),
   // University
   university_name: z.string().min(1, "University name is required").max(200),
@@ -37,7 +38,7 @@ export const academicSchema = z.object({
     .max(4, "Year must be between 1 and 4"),
   cgpa_percentage: z.coerce
     .number()
-    .min(0, "CGPA/Percentage must be a positive number")
+    .gt(0, "CGPA/Percentage must be greater than 0")
     .max(100, "Value cannot exceed 100"),
   expected_graduation_month: z.coerce
     .number()

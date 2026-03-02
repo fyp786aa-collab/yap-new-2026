@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -19,9 +19,10 @@ import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Save, Plus, Trash2 } from "lucide-react";
 
 const currentYear = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: currentYear - 2000 + 2 }, (_, i) => ({
-  label: String(2000 + i),
-  value: String(2000 + i),
+
+const YEAR_OPTIONS = Array.from({ length: currentYear - 2000 + 1 }, (_, i) => ({
+  label: String(currentYear - i),
+  value: String(currentYear - i),
 }));
 
 const EMPTY_EXPERIENCE: VoluntaryExperience = {
@@ -44,8 +45,9 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
     handleSubmit,
     control,
     formState: { errors, isDirty },
-  } = useForm<ExperienceInput>({
-    resolver: zodResolver(experienceSchema),
+  } = useForm({
+    resolver: zodResolver(experienceSchema) as any,
+    mode: "onBlur",
     defaultValues: {
       experiences:
         defaultValues?.experiences && defaultValues.experiences.length > 0
@@ -113,19 +115,43 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
                     {...register(`experiences.${index}.institution`)}
                   />
                 </div>
-                <FormSelect
-                  label="From Year"
-                  required
-                  options={YEAR_OPTIONS}
-                  error={errors.experiences?.[index]?.from_year?.message}
-                  {...register(`experiences.${index}.from_year`)}
+                <Controller
+                  control={control}
+                  name={`experiences.${index}.from_year`}
+                  render={({ field }) => (
+                    <FormSelect
+                      label="From Year"
+                      required
+                      options={YEAR_OPTIONS}
+                      error={errors.experiences?.[index]?.from_year?.message}
+                      value={field.value as string | number}
+                      onChange={(e: any) => {
+                        if (typeof e === "string") field.onChange(e);
+                        else if (e?.target) field.onChange(e.target.value);
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  )}
                 />
-                <FormSelect
-                  label="To Year"
-                  required
-                  options={YEAR_OPTIONS}
-                  error={errors.experiences?.[index]?.to_year?.message}
-                  {...register(`experiences.${index}.to_year`)}
+                <Controller
+                  control={control}
+                  name={`experiences.${index}.to_year`}
+                  render={({ field }) => (
+                    <FormSelect
+                      label="To Year"
+                      required
+                      options={YEAR_OPTIONS}
+                      error={errors.experiences?.[index]?.to_year?.message}
+                      value={field.value as string | number}
+                      onChange={(e: any) => {
+                        if (typeof e === "string") field.onChange(e);
+                        else if (e?.target) field.onChange(e.target.value);
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  )}
                 />
                 <div className="sm:col-span-2">
                   <FormInput

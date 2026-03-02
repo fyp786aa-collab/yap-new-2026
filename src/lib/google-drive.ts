@@ -58,14 +58,14 @@ export async function uploadFileToDrive(
     fields: "id, webViewLink",
   });
 
-  // Make file viewable by anyone with the link
-  await drive.permissions.create({
-    fileId: response.data.id!,
-    requestBody: {
-      role: "reader",
-      type: "anyone",
-    },
-  });
+  // // Make file viewable by anyone with the link
+  // await drive.permissions.create({
+  //   fileId: response.data.id!,
+  //   requestBody: {
+  //     role: "reader",
+  //     type: "anyone",
+  //   },
+  // });
 
   return {
     fileId: response.data.id!,
