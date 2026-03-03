@@ -93,6 +93,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
               onCheckedChange={(checked) =>
                 setValue("available_july_aug_2026", checked === true, {
                   shouldValidate: true,
+                  shouldDirty: true,
                 })
               }
               className="mt-0.5"

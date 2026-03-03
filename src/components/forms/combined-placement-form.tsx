@@ -302,10 +302,16 @@ export function CombinedPlacementForm({
           <h3 className="text-sm font-bold text-yap-primary mb-4 uppercase tracking-wide">
             Internship Preferences
           </h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          {/* <p className="text-sm text-muted-foreground mb-4">
             Rank all 6 AKDN agencies in order of preference (1 = most preferred)
-          </p>
-          <PriorityRanker items={rankings} onChange={setRankings} />
+          </p> */}
+          <PriorityRanker
+            items={rankings}
+            onChange={setRankings}
+            agencyLabels={Object.fromEntries(
+              AGENCIES.map((a) => [a.value, a.fullForm]),
+            )}
+          />
         </div>
 
         <Separator />

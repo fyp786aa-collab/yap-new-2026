@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils";
 interface PriorityRankerProps {
   items: Array<{ agency: string; priority_rank: number }>;
   onChange: (items: Array<{ agency: string; priority_rank: number }>) => void;
+  agencyLabels?: Record<string, string>;
   error?: string;
 }
 
 export function PriorityRanker({
   items,
   onChange,
+  agencyLabels,
   error,
 }: PriorityRankerProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -130,6 +132,12 @@ export function PriorityRanker({
             <GripVertical className="h-5 w-5 text-gray-400 shrink-0" />
             <span className="flex-1 text-sm font-medium text-[#152232]">
               {item.agency}
+              {agencyLabels?.[item.agency] &&
+                agencyLabels[item.agency] !== item.agency && (
+                  <span className="text-xs font-normal text-muted-foreground ml-1">
+                    ({agencyLabels[item.agency]})
+                  </span>
+                )}
             </span>
           </div>
         ))}

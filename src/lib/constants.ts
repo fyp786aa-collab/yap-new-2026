@@ -16,12 +16,32 @@ export const RE_EDUCATION_OPTIONS = [
 ] as const;
 
 export const AGENCIES = [
-  { value: "AKESP", label: "AKESP" },
-  { value: "AKHS", label: "AKHS" },
-  { value: "AKRSP", label: "AKRSP" },
-  { value: "AKAH", label: "AKAH" },
-  { value: "Serena Hotels", label: "Serena Hotels" },
-  { value: "Accelerate Prosperity", label: "Accelerate Prosperity" },
+  {
+    value: "AKESP",
+    label: "AKESP",
+    fullForm: "Aga Khan Education Service, Pakistan",
+  },
+  {
+    value: "AKHS",
+    label: "AKHS",
+    fullForm: "Aga Khan Health Services, Pakistan",
+  },
+  {
+    value: "AKRSP",
+    label: "AKRSP",
+    fullForm: "Aga Khan Rural Support Programme, Pakistan",
+  },
+  {
+    value: "AKAH",
+    label: "AKAH",
+    fullForm: "Aga Khan Agency for Habitat, Pakistan",
+  },
+  { value: "Serena Hotels", label: "Serena Hotels", fullForm: "Serena Hotels" },
+  {
+    value: "Accelerate Prosperity",
+    label: "Accelerate Prosperity",
+    fullForm: "Accelerate Prosperity",
+  },
 ] as const;
 
 export const SKILL_CATEGORIES = [
