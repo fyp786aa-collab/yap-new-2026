@@ -27,7 +27,7 @@ export default async function PersonalInfoPage() {
   const defaults = {
     full_name: applicant?.full_name || "",
     father_name: applicant?.father_name || "",
-    gender: (applicant?.gender as "Male" | "Female" | "Other") || "Male",
+    gender: (applicant?.gender as "Male" | "Female") || "Male",
     date_of_birth: applicant?.date_of_birth
       ? new Date(applicant.date_of_birth).toISOString().slice(0, 10)
       : "",

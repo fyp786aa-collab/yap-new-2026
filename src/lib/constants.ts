@@ -6,7 +6,6 @@ export const COHORT_YEAR = 2026;
 export const GENDER_OPTIONS = [
   { value: "Male", label: "Male" },
   { value: "Female", label: "Female" },
-  { value: "Other", label: "Other" },
 ] as const;
 
 export const RE_EDUCATION_OPTIONS = [

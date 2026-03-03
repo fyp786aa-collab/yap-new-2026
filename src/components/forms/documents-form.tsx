@@ -137,7 +137,7 @@ export function DocumentsForm({
               }}
             />
             <FileUpload
-              label="Academic Transcript"
+              label="University academic transcript"
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               maxSize={10 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}

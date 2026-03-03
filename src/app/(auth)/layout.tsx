@@ -47,7 +47,7 @@ export default async function AuthLayout({
           >
             <div className="flex items-center gap-3 text-white/60">
               <div className="w-2 h-2 rounded-full bg-yap-accent" />
-              <span>6 week internship placements</span>
+              <span>6 week field placement</span>
             </div>
             <div className="flex items-center gap-3 text-white/60">
               <div className="w-2 h-2 rounded-full bg-yap-accent" />

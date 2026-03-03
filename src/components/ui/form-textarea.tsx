@@ -45,7 +45,7 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
         <div className="flex justify-between items-center">
           <label
             htmlFor={textareaId}
-            className="block text-sm text-justify font-medium text-[#152232]"
+            className="whitespace-pre-line block text-sm text-justify font-medium text-[#152232]"
           >
             {label}
             {props.required && <span className="text-[#dc2626] ml-0.5">*</span>}

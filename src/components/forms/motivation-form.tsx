@@ -63,6 +63,7 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
       description=""
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <h3>Reflective Question </h3>
         <Controller
           control={control}
           name="essay_response"
@@ -87,7 +88,7 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
         />
 
         <Separator />
-
+        <h3>Case Study</h3>
         <Controller
           control={control}
           name="scenario_response"
@@ -95,7 +96,7 @@ export function MotivationForm({ defaultValues }: MotivationFormProps) {
           render={({ field }) => (
             <FormTextarea
               label={
-                "You have recently relocated to a new city for this six-week residential internship. It is now your third week, and you are still adjusting to the institutional culture, expectations, and communication style. You have been assigned a collaborative project with other interns and team members; however, the instructions provided are broad rather than highly detailed, and team members have significantly different work styles. There are occasional misunderstandings regarding deadlines and responsibilities, and you feel hesitant to ask too many questions because you do not want to appear inexperienced. At the same time, you are living away from home, adapting to a new routine, and striving to perform at a high standard. How would you approach this situation? In your response, explain how you would manage communication within the team, seek clarity without undermining your confidence, maintain professionalism while adapting to a new environment, and apply personal strategies to stay focused and resilient during this adjustment period. Please respond in detail, clearly outlining your thought process and actions."
+                "You have recently relocated to a new city for this six-week residential internship. It is now your third week, and you are still adjusting to the institutional culture, expectations, and communication style. You have been assigned a collaborative project with other interns and team members; however, the instructions provided are broad rather than highly detailed, and team members have significantly different work styles. There are occasional misunderstandings regarding deadlines and responsibilities, and you feel hesitant to ask too many questions because you do not want to appear inexperienced. At the same time, you are living away from home, adapting to a new routine, and striving to perform at a high standard. How would you approach this situation? \n\n In your response, explain how you would manage communication within the team, seek clarity without undermining your confidence, maintain professionalism while adapting to a new environment, and apply personal strategies to stay focused and resilient during this adjustment period. Please respond in detail, clearly outlining your thought process and actions."
               }
               required
               maxWords={250}

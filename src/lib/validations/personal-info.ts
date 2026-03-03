@@ -19,7 +19,7 @@ export const personalInfoSchema = z
       .string()
       .min(2, "Father name must be at least 2 characters")
       .max(150),
-    gender: z.enum(["Male", "Female", "Other"], "Please select a gender"),
+    gender: z.enum(["Male", "Female"], "Please select a gender"),
     date_of_birth: z
       .string()
       .min(1, "Date of birth is required")
