@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -48,7 +48,7 @@ export function CombinedPlacementForm({
     setValue: setPlacementValue,
     watch: watchPlacement,
     control: controlPlacement,
-    formState: { errors: placementErrors },
+    formState: { errors: placementErrors, isDirty: placementIsDirty },
   } = useForm<PlacementInput>({
     resolver: zodResolver(placementSchema),
     defaultValues: {
@@ -64,22 +64,32 @@ export function CombinedPlacementForm({
   const stayedAway = watchPlacement("stayed_away_before");
 
   // Internship preferences
-  const initialRankings =
+  const initialRankings = useRef(
     internshipDefaults && internshipDefaults.length === 6
       ? [...internshipDefaults].sort(
           (a, b) => a.priority_rank - b.priority_rank,
         )
-      : AGENCIES.map((a, i) => ({ agency: a.value, priority_rank: i + 1 }));
+      : AGENCIES.map((a, i) => ({ agency: a.value, priority_rank: i + 1 })),
+  );
 
-  const [rankings, setRankings] =
-    useState<Array<{ agency: string; priority_rank: number }>>(initialRankings);
+  const [rankings, setRankings] = useState<
+    Array<{ agency: string; priority_rank: number }>
+  >(initialRankings.current);
+
+  const rankingsChanged = useMemo(() => {
+    return JSON.stringify(rankings) !== JSON.stringify(initialRankings.current);
+  }, [rankings]);
 
   // Skills form
   const {
     register: registerSkills,
     setValue: setSkillsValue,
     watch: watchSkills,
-    formState: { errors: skillsErrors, isValid: skillsValid },
+    formState: {
+      errors: skillsErrors,
+      isValid: skillsValid,
+      isDirty: skillsIsDirty,
+    },
     trigger: triggerSkills,
   } = useForm<SkillsInput>({
     resolver: zodResolver(skillsSchema),
@@ -98,6 +108,8 @@ export function CombinedPlacementForm({
       ...skillsDefaults,
     },
   });
+
+  const hasChanges = placementIsDirty || skillsIsDirty || rankingsChanged;
 
   async function onSubmit(placementData: PlacementInput) {
     // Also validate skills
@@ -176,6 +188,7 @@ export function CombinedPlacementForm({
                       checked === true,
                       {
                         shouldValidate: true,
+                        shouldDirty: true,
                       },
                     )
                   }
@@ -204,6 +217,7 @@ export function CombinedPlacementForm({
                 onValueChange={(val) =>
                   setPlacementValue("stayed_away_before", val === "yes", {
                     shouldValidate: true,
+                    shouldDirty: true,
                   })
                 }
                 className="flex gap-6"
@@ -352,7 +366,7 @@ export function CombinedPlacementForm({
           <ButtonPrimary
             type="submit"
             loading={isLoading}
-            disabled={!willingGC}
+            disabled={!willingGC || !hasChanges}
           >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue

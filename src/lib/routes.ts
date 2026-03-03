@@ -45,7 +45,7 @@ export const SECTION_ORDER = [
   },
   {
     key: "placement",
-    label: "Placement, Preferences & Skills",
+    label: "Placement Preferences & Skills",
     route: ROUTES.DASHBOARD.PLACEMENT,
     section: 3,
   },

@@ -24,7 +24,7 @@ const ButtonPrimary = forwardRef<HTMLButtonElement, ButtonPrimaryProps>(
     ref,
   ) => {
     const baseClasses =
-      "rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2";
+      "relative rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 cursor-pointer";
 
     const sizeClasses = {
       sm: "px-3 py-1.5 text-sm",
@@ -53,8 +53,19 @@ const ButtonPrimary = forwardRef<HTMLButtonElement, ButtonPrimaryProps>(
         disabled={disabled || loading}
         {...props}
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        {children}
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </span>
+        )}
+        <span
+          className={cn(
+            "inline-flex items-center gap-2",
+            loading && "invisible",
+          )}
+        >
+          {children}
+        </span>
       </button>
     );
   },
