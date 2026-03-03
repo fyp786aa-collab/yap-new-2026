@@ -1,0 +1,424 @@
+# =============================================================================
+# Neon PostgreSQL — Automated Daily Backup to Google Drive
+# =============================================================================
+#
+# Schedule : Every day at 20:00 UTC  (= 01:00 AM PKT, UTC+5)
+# Destination: Google Drive folder via rclone (OAuth 2.0)
+# Retention  : 7 daily · 4 weekly · 12 monthly
+#
+# Required GitHub Secrets — see BACKUP-SETUP.md for creation steps:
+#   DATABASE_URL          — Full Neon Postgres connection string
+#   GDRIVE_CLIENT_ID      — Google OAuth 2.0 Client ID
+#   GDRIVE_CLIENT_SECRET  — Google OAuth 2.0 Client Secret
+#   GDRIVE_REFRESH_TOKEN  — OAuth refresh token for the backup Google account
+#   GDRIVE_FOLDER_ID      — ID of the target Google Drive folder
+#   GMAIL_USER            — Gmail address used to SEND notifications
+#   GMAIL_APP_PASSWORD    — Gmail App Password (NOT your normal Gmail password)
+#   NOTIFY_EMAIL          — Email address to RECEIVE notifications
+# =============================================================================
+
+name: Neon Database Backup
+
+on:
+  # 11:15 PM PKT (UTC+5) → 18:15 UTC previous day
+  schedule:
+    - cron: "15 18 * * *"
+
+  # ── Manual trigger ────────────────────────────────────────────────────────
+  # Allows running the backup on-demand from the Actions tab
+  workflow_dispatch:
+
+# ── Minimal permissions ──────────────────────────────────────────────────────
+# The workflow only needs to read repo contents (checkout). No write access.
+permissions:
+  contents: read
+
+# ── Prevent concurrent backup runs ──────────────────────────────────────────
+concurrency:
+  group: neon-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: YAP-2026 Backup  → Google Drive
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Timestamp used for the backup filename (UTC date)
+      BACKUP_DATE: ""
+      BACKUP_FILE: ""
+      RCLONE_CONF: ""
+
+    steps:
+      # ────────────────────────────────────────────────────────────────────────
+      # 1. Generate timestamp & filename
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Generate backup filename
+        run: |
+          set -euo pipefail
+          BACKUP_DATE=$(TZ="Asia/Karachi" date +"%Y-%m-%d")
+          BACKUP_FILE="db-backup-${BACKUP_DATE}.sql.gz"
+          echo "BACKUP_DATE=${BACKUP_DATE}" >> "$GITHUB_ENV"
+          echo "BACKUP_FILE=${BACKUP_FILE}" >> "$GITHUB_ENV"
+          echo "::notice::Backup file will be ${BACKUP_FILE}"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 2. Install PostgreSQL client (pg_dump)
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Install PostgreSQL client
+        run: |
+          set -euo pipefail
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17 > /dev/null
+
+          if [ -x "/usr/lib/postgresql/17/bin/pg_dump" ]; then
+            echo "PG_DUMP_BIN=/usr/lib/postgresql/17/bin/pg_dump" >> "$GITHUB_ENV"
+            echo "Using /usr/lib/postgresql/17/bin/pg_dump"
+            /usr/lib/postgresql/17/bin/pg_dump --version
+          else
+            PGPATH=$(command -v pg_dump || true)
+            if [ -n "${PGPATH}" ]; then
+              echo "PG_DUMP_BIN=${PGPATH}" >> "$GITHUB_ENV"
+              echo "Using fallback pg_dump: ${PGPATH}"
+              ${PGPATH} --version
+            else
+              echo "::error::pg_dump not found after installation"
+              exit 1
+            fi
+          fi
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 3. Dump the Neon database
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Dump database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${DATABASE_URL}"
+
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::DATABASE_URL secret is not set or is empty!"
+            exit 1
+          fi
+
+          DUMP_LOG=$(mktemp /tmp/pgdump-XXXXXX.log)
+          echo "Starting pg_dump…"
+          PG_DUMP=${PG_DUMP_BIN:-pg_dump}
+
+          PG_VER=$(${PG_DUMP} --version | awk '{print $3}' | cut -d. -f1 || true)
+          if [ -z "${PG_VER}" ] || [ "${PG_VER}" -lt 17 ]; then
+            echo "::error::pg_dump version ${PG_VER:-unknown} is incompatible with server (requires >=17)."
+            rm -f "${DUMP_LOG}" "${BACKUP_FILE}" 2>/dev/null || true
+            exit 1
+          fi
+
+          if ! ${PG_DUMP} "${DATABASE_URL}" \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            2>"${DUMP_LOG}" \
+            | gzip -9 > "${BACKUP_FILE}"; then
+            echo "::error::pg_dump failed — stderr output below:"
+            sed "s|${DATABASE_URL}|***DATABASE_URL***|g" "${DUMP_LOG}" >&2
+            rm -f "${DUMP_LOG}" "${BACKUP_FILE}" 2>/dev/null || true
+            exit 1
+          fi
+
+          rm -f "${DUMP_LOG}" 2>/dev/null || true
+
+          FILE_SIZE=$(stat --format="%s" "${BACKUP_FILE}")
+          if [ "${FILE_SIZE}" -lt 100 ]; then
+            echo "::error::Backup file is suspiciously small (${FILE_SIZE} bytes). Aborting."
+            exit 1
+          fi
+
+          echo "FILE_SIZE=${FILE_SIZE}" >> "$GITHUB_ENV"
+          echo "::notice::Backup complete — ${BACKUP_FILE} ($(numfmt --to=iec ${FILE_SIZE}))"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 4. Install rclone
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Install rclone
+        run: |
+          set -euo pipefail
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+          echo "rclone version: $(rclone version --check | head -1 || rclone version | head -1)"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 5. Configure rclone for Google Drive
+      # ────────────────────────────────────────────────────────────────────────
+      # NOTE: GITHUB_ENV vars written here are only active in the NEXT step.
+      # Do NOT run rclone commands in this step — they will fail.
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Configure rclone
+        env:
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          set -euo pipefail
+
+          echo "::add-mask::${GDRIVE_CLIENT_ID}"
+          echo "::add-mask::${GDRIVE_CLIENT_SECRET}"
+          echo "::add-mask::${GDRIVE_REFRESH_TOKEN}"
+          echo "::add-mask::${GDRIVE_FOLDER_ID}"
+
+          if [ -z "${GDRIVE_REFRESH_TOKEN}" ]; then
+            echo "::error::GDRIVE_REFRESH_TOKEN is empty or missing."
+            exit 1
+          fi
+          if [ -z "${GDRIVE_CLIENT_ID}" ]; then
+            echo "::error::GDRIVE_CLIENT_ID is empty or missing."
+            exit 1
+          fi
+          if [ -z "${GDRIVE_CLIENT_SECRET}" ]; then
+            echo "::error::GDRIVE_CLIENT_SECRET is empty or missing."
+            exit 1
+          fi
+          if [ -z "${GDRIVE_FOLDER_ID}" ]; then
+            echo "::error::GDRIVE_FOLDER_ID is empty or missing."
+            exit 1
+          fi
+
+          echo "RCLONE_CONFIG_GDRIVE_TYPE=drive" >> "$GITHUB_ENV"
+          echo "RCLONE_CONFIG_GDRIVE_CLIENT_ID=${GDRIVE_CLIENT_ID}" >> "$GITHUB_ENV"
+          echo "RCLONE_CONFIG_GDRIVE_CLIENT_SECRET=${GDRIVE_CLIENT_SECRET}" >> "$GITHUB_ENV"
+          echo "RCLONE_CONFIG_GDRIVE_SCOPE=drive.file" >> "$GITHUB_ENV"
+          echo "RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID=${GDRIVE_FOLDER_ID}" >> "$GITHUB_ENV"
+          echo "RCLONE_CONFIG_GDRIVE_TOKEN={\"access_token\":\"\",\"token_type\":\"Bearer\",\"refresh_token\":\"${GDRIVE_REFRESH_TOKEN}\",\"expiry\":\"2000-01-01T00:00:00.000Z\"}" >> "$GITHUB_ENV"
+
+          echo "::notice::rclone env config written — credentials will be active in the next step"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 6. Upload backup to Google Drive
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Upload backup to Google Drive
+        if: success()
+        run: |
+          set -euo pipefail
+
+          echo "Verifying rclone access to Google Drive…"
+          if ! rclone lsf "gdrive:/" >/dev/null 2>&1; then
+            echo "::error::rclone cannot access Google Drive using provided credentials."
+            echo "Run 'rclone authorize \"drive\"' locally to generate a fresh refresh token, then update the GDRIVE_REFRESH_TOKEN secret."
+            rclone lsf "gdrive:/" || true
+            exit 1
+          fi
+          echo "::notice::Google Drive access verified"
+
+          echo "Uploading ${BACKUP_FILE} to Google Drive…"
+          rclone copy \
+            --log-level INFO \
+            --checkers 1 \
+            --transfers 1 \
+            --drive-chunk-size 64M \
+            "${BACKUP_FILE}" \
+            "gdrive:/"
+
+          rclone lsf "gdrive:/" | grep -q "${BACKUP_FILE}" \
+            && echo "::notice::Upload verified — ${BACKUP_FILE} is on Google Drive" \
+            || { echo "::error::Upload verification failed"; exit 1; }
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 7. Retention policy — prune old backups
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Apply retention policy
+        if: success()
+        run: |
+          set -euo pipefail
+
+          echo "Applying retention policy…"
+
+          mapfile -t ALL_FILES < <(
+            rclone lsf "gdrive:/" \
+              | grep -E '^db-backup-[0-9]{4}-[0-9]{2}-[0-9]{2}\.sql\.gz$' \
+              | sort
+          )
+
+          TOTAL=${#ALL_FILES[@]}
+          echo "Total backups on Drive: ${TOTAL}"
+
+          if [ "${TOTAL}" -le 7 ]; then
+            echo "::notice::Only ${TOTAL} backups found — nothing to prune."
+            exit 0
+          fi
+
+          declare -A KEEP
+
+          # Keep last 7 daily backups
+          mapfile -t DAILY < <(printf '%s\n' "${ALL_FILES[@]}" | tail -7)
+          for f in "${DAILY[@]}"; do KEEP["$f"]=1; done
+
+          # Keep 4 weekly backups (latest per ISO week)
+          declare -A WEEKLY_MAP
+          for f in "${ALL_FILES[@]}"; do
+            DATE_STR="${f#db-backup-}"
+            DATE_STR="${DATE_STR%.sql.gz}"
+            WEEK_KEY=$(date -d "${DATE_STR}" +"%G-W%V" 2>/dev/null || true)
+            if [ -n "${WEEK_KEY}" ]; then
+              WEEKLY_MAP["${WEEK_KEY}"]="${f}"
+            fi
+          done
+          mapfile -t WEEKLY_KEYS < <(printf '%s\n' "${!WEEKLY_MAP[@]}" | sort -r | head -4)
+          for wk in "${WEEKLY_KEYS[@]}"; do KEEP["${WEEKLY_MAP[$wk]}"]=1; done
+
+          # Keep 12 monthly backups (latest per month)
+          declare -A MONTHLY_MAP
+          for f in "${ALL_FILES[@]}"; do
+            DATE_STR="${f#db-backup-}"
+            DATE_STR="${DATE_STR%.sql.gz}"
+            MONTH_KEY="${DATE_STR:0:7}"
+            MONTHLY_MAP["${MONTH_KEY}"]="${f}"
+          done
+          mapfile -t MONTHLY_KEYS < <(printf '%s\n' "${!MONTHLY_MAP[@]}" | sort -r | head -12)
+          for mk in "${MONTHLY_KEYS[@]}"; do KEEP["${MONTHLY_MAP[$mk]}"]=1; done
+
+          # Delete files NOT in the KEEP set
+          DELETED=0
+          for f in "${ALL_FILES[@]}"; do
+            if [ -z "${KEEP[$f]+x}" ]; then
+              echo "Deleting old backup: ${f}"
+              rclone delete "gdrive:/${f}"
+              ((DELETED++))
+            fi
+          done
+
+          echo "DELETED_COUNT=${DELETED}" >> "$GITHUB_ENV"
+          echo "KEPT_COUNT=${#KEEP[@]}" >> "$GITHUB_ENV"
+          echo "::notice::Retention complete — kept ${#KEEP[@]} backups, deleted ${DELETED}."
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 8. Send success email
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Send success email
+        if: success()
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GMAIL_APP_PASSWORD}"
+
+          FILE_SIZE_HR=$(numfmt --to=iec "${FILE_SIZE:-0}" 2>/dev/null || echo "unknown")
+
+          sudo apt-get install -y -qq msmtp > /dev/null
+
+          cat > /tmp/msmtprc << EOF
+          defaults
+          auth           on
+          tls            on
+          tls_trust_file /etc/ssl/certs/ca-certificates.crt
+          logfile        /tmp/msmtp.log
+
+          account        gmail
+          host           smtp.gmail.com
+          port           587
+          from           ${GMAIL_USER}
+          user           ${GMAIL_USER}
+          password       ${GMAIL_APP_PASSWORD}
+
+          account default : gmail
+          EOF
+          chmod 600 /tmp/msmtprc
+
+          cat << EOF | msmtp --file=/tmp/msmtprc "${NOTIFY_EMAIL}"
+          From: Neon Backup Bot <${GMAIL_USER}>
+          To: ${NOTIFY_EMAIL}
+          Subject: =?UTF-8?Q?=E2=9C=85?= Backup Successful — ${BACKUP_DATE}
+          Content-Type: text/plain; charset=UTF-8
+
+          Your Neon database backup completed successfully.
+
+          ─────────────────────────────────────
+          Date       : ${BACKUP_DATE}
+          File       : ${BACKUP_FILE}
+          Size       : ${FILE_SIZE_HR}
+          Stored in  : Google Drive
+          Kept       : ${KEPT_COUNT:-n/a} backups total
+          Deleted    : ${DELETED_COUNT:-0} old backups (retention policy)
+          ─────────────────────────────────────
+
+          View run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          — GitHub Actions
+          EOF
+
+          rm -f /tmp/msmtprc
+          echo "::notice::Success email sent to ${NOTIFY_EMAIL}"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 9. Send failure email
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Send failure email
+        if: failure()
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GMAIL_APP_PASSWORD}"
+
+          # BACKUP_DATE may be empty if failure happened in step 1
+          REPORT_DATE="${BACKUP_DATE:-$(TZ="Asia/Karachi" date +"%Y-%m-%d")}"
+
+          sudo apt-get install -y -qq msmtp > /dev/null
+
+          cat > /tmp/msmtprc << EOF
+          defaults
+          auth           on
+          tls            on
+          tls_trust_file /etc/ssl/certs/ca-certificates.crt
+          logfile        /tmp/msmtp.log
+
+          account        gmail
+          host           smtp.gmail.com
+          port           587
+          from           ${GMAIL_USER}
+          user           ${GMAIL_USER}
+          password       ${GMAIL_APP_PASSWORD}
+
+          account default : gmail
+          EOF
+          chmod 600 /tmp/msmtprc
+
+          cat << EOF | msmtp --file=/tmp/msmtprc "${NOTIFY_EMAIL}"
+          From: Neon Backup Bot <${GMAIL_USER}>
+          To: ${NOTIFY_EMAIL}
+          Subject: =?UTF-8?Q?=E2=9D=8C?= Backup FAILED — ${REPORT_DATE}
+          Content-Type: text/plain; charset=UTF-8
+
+          Your Neon database backup has FAILED and needs your attention!
+
+          ─────────────────────────────────────
+          Date   : ${REPORT_DATE}
+          Status : FAILED
+          ─────────────────────────────────────
+
+          Please check the logs for details:
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          — GitHub Actions
+          EOF
+
+          rm -f /tmp/msmtprc
+          echo "::notice::Failure email sent to ${NOTIFY_EMAIL}"
+
+      # ────────────────────────────────────────────────────────────────────────
+      # 10. Cleanup — always runs, even on failure
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Cleanup local files
+        if: always()
+        run: |
+          set -eo pipefail
+          rm -f "${BACKUP_FILE:-}" 2>/dev/null || true
+          rm -f "${RCLONE_CONF:-}" /tmp/rclone.conf 2>/dev/null || true
+          rm -f /tmp/pgdump-*.log /tmp/msmtp.log /tmp/msmtprc 2>/dev/null || true
+          echo "::notice::Local cleanup complete"
