@@ -36,7 +36,7 @@ export function SectionWrapper({
 
       {/* Form content */}
       <Card>
-        <CardContent className="pt-6 pb-6">{children}</CardContent>
+        <CardContent className="pt-1 pb-6">{children}</CardContent>
       </Card>
     </div>
   );

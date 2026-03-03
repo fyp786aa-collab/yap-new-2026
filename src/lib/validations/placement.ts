@@ -13,7 +13,7 @@ export const placementSchema = z
       })
       .refine((val) => val === true, {
         message:
-          "You must confirm your willingness to be placed in Gilgit-Baltistan or Chitral",
+          "You must confirm your willingness to be placed in Gilgit or Chitral",
       }),
     stayed_away_before: z.boolean({
       error: "Please answer this question",

@@ -107,6 +107,10 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
                   <li>Record a video (maximum 2 minutes)</li>
                   <li>Maximum file size: 100MB</li>
                   <li>Accepted formats: MP4, MOV, AVI, WebM</li>
+                  <li>
+                    If your video is under 2 minutes but exceeds the 100MB
+                    limit, please compress the video before uploading.
+                  </li>
                 </ul>
               </div>
             </div>
@@ -114,7 +118,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
         </Card>
 
         <FileUpload
-          label="Introduction Video"
+          label="Upload Video"
           accept=".mp4,.mov,.avi,.webm"
           maxSize={100 * 1024 * 1024}
           maxDuration={120}

@@ -132,7 +132,7 @@ export function CombinedPlacementForm({
         prefsResult.success &&
         skillsResult.success
       ) {
-        toast.success("Placement, preferences & skills saved!");
+        toast.success("Placement preferences & skills saved!");
         router.push(ROUTES.DASHBOARD.EXPERIENCE);
       } else {
         const error =
@@ -149,7 +149,7 @@ export function CombinedPlacementForm({
   return (
     <SectionWrapper
       sectionKey="placement"
-      title="Placement, Preferences & Skills"
+      title="Placement Preferences & Skills"
       description="Your readiness, internship preferences, and skills assessment"
     >
       <form onSubmit={handleSubmitPlacement(onSubmit)} className="space-y-8">
@@ -163,7 +163,7 @@ export function CombinedPlacementForm({
             {/* Willing to serve in GB/Chitral */}
             <div>
               <label className="text-sm font-medium text-foreground block mb-2">
-                Are you willing to be placed in Gilgit-Baltistan or Chitral?{" "}
+                Are you willing to be placed in Gilgit or Chitral?{" "}
                 <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export function CombinedPlacementForm({
                   }
                 />
                 <label htmlFor="willing_gc" className="text-sm cursor-pointer">
-                  Yes, I am willing to be placed in Gilgit-Baltistan or Chitral
+                  Yes, I am willing to be placed in Gilgit or Chitral
                 </label>
               </div>
               {placementErrors.willing_gilgit_chitral && (

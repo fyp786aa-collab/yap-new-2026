@@ -56,26 +56,8 @@ export function FileUpload({
   const handleFile = async (file: File) => {
     setLocalError("");
 
-    if (file.size > maxSize) {
-      setLocalError(`File size must be under ${formatFileSize(maxSize)}`);
-      return;
-    }
-
-    const acceptTypes = accept.split(",").map((t) => t.trim());
-    const matchesType = acceptTypes.some((type) => {
-      if (type.startsWith(".")) {
-        return file.name.toLowerCase().endsWith(type);
-      }
-      return file.type === type || file.type.startsWith(type.replace("*", ""));
-    });
-
-    if (!matchesType) {
-      setLocalError("Invalid file type");
-      return;
-    }
-
-    // Check video duration if maxDuration is set
-    if (maxDuration && file.type.startsWith("video/")) {
+    // For videos, check duration first so we can recommend compression
+    if (file.type.startsWith("video/") && maxDuration) {
       const durationOk = await new Promise<boolean>((resolve) => {
         const video = document.createElement("video");
         video.preload = "metadata";
@@ -102,7 +84,34 @@ export function FileUpload({
         video.src = URL.createObjectURL(file);
       });
       if (!durationOk) return;
+
+      if (file.size > maxSize) {
+        setLocalError(
+          `File is under the maximum duration but exceeds the size limit (${formatFileSize(maxSize)}). Please compress the video before uploading.`,
+        );
+        return;
+      }
+    } else {
+      if (file.size > maxSize) {
+        setLocalError(`File size must be under ${formatFileSize(maxSize)}`);
+        return;
+      }
     }
+
+    const acceptTypes = accept.split(",").map((t) => t.trim());
+    const matchesType = acceptTypes.some((type) => {
+      if (type.startsWith(".")) {
+        return file.name.toLowerCase().endsWith(type);
+      }
+      return file.type === type || file.type.startsWith(type.replace("*", ""));
+    });
+
+    if (!matchesType) {
+      setLocalError("Invalid file type");
+      return;
+    }
+
+    // (duration check for videos handled above)
 
     if (uploadUrl) {
       setUploading(true);

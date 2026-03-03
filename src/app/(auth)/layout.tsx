@@ -38,7 +38,7 @@ export default async function AuthLayout({
             </h1> */}
             <p className="text-lg text-white/70 max-w-md leading-relaxed">
               Gain hands-on professional experience through internship
-              placements with AKDN agencies across Gilgit-Baltistan and Chitral.
+              placements with AKDN agencies across Gilgit and Chitral.
             </p>
           </div>
           <div
@@ -47,11 +47,11 @@ export default async function AuthLayout({
           >
             <div className="flex items-center gap-3 text-white/60">
               <div className="w-2 h-2 rounded-full bg-yap-accent" />
-              <span>6–8 week internship placements</span>
+              <span>6 week internship placements</span>
             </div>
             <div className="flex items-center gap-3 text-white/60">
               <div className="w-2 h-2 rounded-full bg-yap-accent" />
-              <span>6 AKDN agencies to choose from</span>
+              <span>AKDN agencies to choose from</span>
             </div>
             <div className="flex items-center gap-3 text-white/60">
               <div className="w-2 h-2 rounded-full bg-yap-accent" />

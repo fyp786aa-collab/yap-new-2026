@@ -82,7 +82,7 @@ export function ExperienceForm({ defaultValues }: ExperienceFormProps) {
     <SectionWrapper
       sectionKey="experience"
       title="Experience & Engagement"
-      description="List up to 5 voluntary experiences"
+      description="List up to 5 relevant volunteering experiences, internships, or community work."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">

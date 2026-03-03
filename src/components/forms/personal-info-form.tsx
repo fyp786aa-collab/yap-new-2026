@@ -390,7 +390,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
         {/* Relatives in GB/Chitral */}
         <div>
           <h3 className="text-sm font-semibold text-yap-primary mb-3">
-            Relatives in Gilgit-Baltistan / Chitral
+            Relative's in Gilgit / Chitral
           </h3>
           <div className="flex items-center gap-3 mb-4">
             <Checkbox
@@ -403,7 +403,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
               }
             />
             <label htmlFor="has_relatives" className="text-sm cursor-pointer">
-              I have relatives living in Gilgit-Baltistan or Chitral
+              I have relatives living in Gilgit or Chitral
             </label>
           </div>
           {hasRelatives && (
@@ -415,13 +415,13 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
                 {...register("relatives_name")}
               />
               <FormInput
-                label="Relatives Address"
+                label="Relative's Address"
                 required
                 error={errors.relatives_address?.message}
                 {...register("relatives_address")}
               />
               <FormInput
-                label="Relatives Contact"
+                label="Relative's Contact"
                 required
                 error={errors.relatives_contact?.message}
                 {...register("relatives_contact")}

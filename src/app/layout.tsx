@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description:
-    "Apply for the AKYSB Pakistan Young Ambassador Programme 2026. Gain hands-on experience with AKDN agencies in Gilgit-Baltistan and Chitral.",
+    "Apply for the AKYSB Pakistan Young Ambassador Programme 2026. Gain hands-on experience with AKDN agencies in Gilgit and Chitral.",
   icons: {
     icon: [
       { url: "/favicon_io/favicon.ico" },
