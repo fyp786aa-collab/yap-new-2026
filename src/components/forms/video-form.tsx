@@ -59,11 +59,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
   }
 
   return (
-    <SectionWrapper
-      sectionKey="video"
-      title="Video Submission"
-      description="Record and upload a short introduction video"
-    >
+    <SectionWrapper sectionKey="video" title="Video Submission" description="">
       <div className="space-y-6">
         {/* Instructions */}
         <Card className="border-blue-200 bg-blue-50/50">

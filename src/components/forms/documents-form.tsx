@@ -117,7 +117,7 @@ export function DocumentsForm({
             <FileUpload
               label="CV/Resume"
               accept=".pdf,.doc,.docx"
-              maxSize={5 * 1024 * 1024}
+              maxSize={2 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}
               uploadParams={{ applicationId, documentType: "CV" }}
               currentFile={
@@ -139,7 +139,7 @@ export function DocumentsForm({
             <FileUpload
               label="University academic transcript"
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              maxSize={10 * 1024 * 1024}
+              maxSize={2 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}
               uploadParams={{ applicationId, documentType: "Transcript" }}
               currentFile={
