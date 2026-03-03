@@ -345,7 +345,7 @@ jobs:
           Deleted    : ${DELETED_COUNT:-0} old backups (retention policy)
           ─────────────────────────────────────
 
-          View run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 
           — GitHub Actions
           EOF
