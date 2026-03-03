@@ -128,12 +128,12 @@ export default function LoginPage() {
       <p className="text-center text-sm mt-4">
         Need help?{" "}
         <Link
-          href="https://wa.me/923035747003"
+          href="https://wa.me/923102692232"
           target="_blank"
           rel="noopener noreferrer"
           className="text-yap-accent font-medium hover:underline"
         >
-          Chat with us on WhatsApp (+92 310 2692232)
+          Chat with us on WhatsApp (+92 310 2692232)
         </Link>
         .
       </p>
