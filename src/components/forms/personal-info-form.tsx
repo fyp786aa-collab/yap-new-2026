@@ -17,6 +17,7 @@ import { getJamatkhanasByLocalCouncil } from "@/data/jamatkhanas";
 import { SectionWrapper } from "@/components/forms/section-wrapper";
 import { FormInput } from "@/components/ui/form-input";
 import { FormSelect } from "@/components/ui/form-select";
+import { DobPicker } from "@/components/ui/dob-picker";
 import { ButtonPrimary } from "@/components/ui/button-primary";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -170,12 +171,20 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
               />
             )}
           />
-          <FormInput
-            label="Date of Birth"
-            type="date"
-            required
-            error={errors.date_of_birth?.message}
-            {...register("date_of_birth")}
+          <Controller
+            control={control}
+            name="date_of_birth"
+            render={({ field }) => (
+              <DobPicker
+                label="Date of Birth"
+                required
+                value={field.value}
+                onChange={(val) => {
+                  field.onChange(val);
+                }}
+                error={errors.date_of_birth?.message}
+              />
+            )}
           />
         </div>
 
