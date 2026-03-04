@@ -285,7 +285,7 @@ jobs:
             if [ -z "${KEEP[$f]+x}" ]; then
               echo "Deleting old backup: ${f}"
               rclone delete "gdrive:/${f}"
-              ((DELETED++))
+              DELETED=$((DELETED + 1))
             fi
           done
 
