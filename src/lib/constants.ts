@@ -1,4 +1,4 @@
-export const APP_NAME = "AKYSB Pakistan – Young Ambassador Programme 2026";
+export const APP_NAME = "Young Ambassador Programme 2026";
 export const APP_SHORT_NAME = "YAP 2026";
 export const SUPPORT_EMAIL = "yap.ysb@akcpk.org";
 export const COHORT_YEAR = 2026;
