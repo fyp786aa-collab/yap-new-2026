@@ -22,7 +22,7 @@ const LOCAL_COUNCIL_KEY_MAP: Record<string, string> = {
   Sargodha: "sargodha",
   Gilgit: "gilgit",
   Skardu: "skardu",
-  "Sul, Dan & Oshikhandas": "sul,_dan_&_oshikhandas",
+  DSOR: "dsor",
   "Altit & Karimabad": "altit_&_karimabad",
   "Alyabad & Hyderabad": "alyabad_&_hyderabad",
   Chuperson: "chuperson",
@@ -60,7 +60,7 @@ const LOCAL_COUNCIL_KEY_MAP: Record<string, string> = {
   Mastuj: "mastuj",
   Mulkhow: "mulkhow",
   Rech: "rech",
-  Washich: "washich",
+  "Central Torkhow": "central_torkhow",
   "Yarkhoon Lasht": "yarkhoon_lasht",
 };
 

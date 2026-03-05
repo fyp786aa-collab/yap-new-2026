@@ -27,7 +27,7 @@ export const COUNCILS_BY_REGION: Record<string, string[]> = {
     "Rawalpindi",
     "Sargodha",
   ],
-  gilgit: ["Gilgit", "Skardu", "Sul, Dan & Oshikhandas"],
+  gilgit: ["Gilgit", "Skardu", "DSOR"],
   hunza: [
     "Altit & Karimabad",
     "Alyabad & Hyderabad",
@@ -74,7 +74,7 @@ export const COUNCILS_BY_REGION: Record<string, string[]> = {
     "Mastuj",
     "Mulkhow",
     "Rech",
-    "Washich",
+    "Central Torkhow",
     "Yarkhoon Lasht",
   ],
 };

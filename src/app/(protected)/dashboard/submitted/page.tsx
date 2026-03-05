@@ -73,7 +73,7 @@ export default async function SubmittedPage() {
               <div>
                 <p className="text-sm font-medium">Final Decision</p>
                 <p className="text-sm text-muted-foreground">
-                  All applicants will be notified of the final decision via
+                  Selected applicants will be notified of the final decision via
                   email.
                 </p>
               </div>

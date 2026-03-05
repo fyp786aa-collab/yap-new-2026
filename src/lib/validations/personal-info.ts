@@ -66,6 +66,33 @@ export const personalInfoSchema = z
   })
   .refine(
     (data) => {
+      // Emergency contact name must not match applicant's own name
+      return (
+        data.emergency_name.trim().toLowerCase() !==
+        data.full_name.trim().toLowerCase()
+      );
+    },
+    {
+      message: "Emergency contact name cannot be the same as your own name",
+      path: ["emergency_name"],
+    },
+  )
+  .refine(
+    (data) => {
+      // Emergency phone must not match primary contact or WhatsApp
+      return (
+        data.emergency_phone !== data.primary_contact &&
+        data.emergency_phone !== data.whatsapp_number
+      );
+    },
+    {
+      message:
+        "Emergency contact number cannot be the same as your primary contact or WhatsApp number",
+      path: ["emergency_phone"],
+    },
+  )
+  .refine(
+    (data) => {
       if (data.has_relatives_gilgit_chitral) {
         return data.relatives_name && data.relatives_name.trim().length > 0;
       }

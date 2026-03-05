@@ -75,7 +75,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
                   The Young Ambassador Programme internship placements take
                   place during{" "}
                   <strong>
-                    5th July – 16th August 2026 (excluding tavel dates)
+                    5th July – 16th August 2026 (excluding traveldates)
                   </strong>
                   . You must be available for the full duration of the
                   placement.
@@ -105,7 +105,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
               I confirm that I am available to participate in the Young
               Ambassador Programme during{" "}
               <strong>
-                5th July – 16th August 2026 (excluding tavel dates)
+                5th July – 16th August 2026 (excluding traveldates)
               </strong>{" "}
               and I commit to completing the full duration of my internship
               placement.

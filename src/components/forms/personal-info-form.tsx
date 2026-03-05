@@ -35,6 +35,7 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     control,
     formState: { errors, isDirty },
@@ -118,6 +119,17 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
         toast.success("Personal information saved!");
         router.push(ROUTES.DASHBOARD.ACADEMIC);
       } else {
+        // Set backend field-level errors on the corresponding inputs
+        if (result.fieldErrors) {
+          Object.entries(result.fieldErrors).forEach(([field, message]) => {
+            if (field !== "_form") {
+              setError(field as keyof PersonalInfoInput, {
+                type: "server",
+                message,
+              });
+            }
+          });
+        }
         toast.error(result.error || "Failed to save");
       }
     } catch {

@@ -63,7 +63,7 @@ const COUNCILS_BY_REGION = {
     "Mastuj",
     "Mulkhow",
     "Rech",
-    "Washich",
+    "Central Torkhow",
     "Yarkhoon Lasht",
   ],
 };

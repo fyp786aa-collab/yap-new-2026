@@ -11,6 +11,7 @@ import {
 import {
   getApplicantByUserId,
   updateApplicant,
+  checkApplicantUniqueness,
 } from "@/lib/db-queries/applicants";
 import {
   upsertLocationInfo,
@@ -79,8 +80,44 @@ export async function savePersonalInfoAction(
 
     const data = parsed.data;
 
+    // Validate emergency contact is not the same as personal contact info
+    const emergencyFieldErrors: Record<string, string> = {};
+    if (
+      data.emergency_name.trim().toLowerCase() ===
+      data.full_name.trim().toLowerCase()
+    ) {
+      emergencyFieldErrors.emergency_name =
+        "Emergency contact name cannot be the same as your own name";
+    }
+    if (data.emergency_phone === data.primary_contact) {
+      emergencyFieldErrors.emergency_phone =
+        "Emergency contact number cannot be the same as your primary contact";
+    }
+    if (data.emergency_phone === data.whatsapp_number) {
+      emergencyFieldErrors.emergency_phone =
+        "Emergency contact number cannot be the same as your WhatsApp number";
+    }
+
+    // Check for unique constraint conflicts before updating
+    const uniqueErrors = await checkApplicantUniqueness(ctx.user.id, {
+      full_name: data.full_name,
+      father_name: data.father_name,
+      cnic: data.cnic,
+      primary_contact: data.primary_contact,
+      whatsapp_number: data.whatsapp_number,
+    });
+
+    const allFieldErrors = { ...emergencyFieldErrors, ...uniqueErrors };
+    if (Object.keys(allFieldErrors).length > 0) {
+      return {
+        success: false,
+        error: "Please fix the highlighted errors below",
+        fieldErrors: allFieldErrors,
+      };
+    }
+
     // Update applicant fields
-    await updateApplicant(ctx.user.id, {
+    const updateResult = await updateApplicant(ctx.user.id, {
       full_name: data.full_name,
       father_name: data.father_name,
       gender: data.gender,
@@ -94,6 +131,12 @@ export async function savePersonalInfoAction(
       permanent_address: data.permanent_address,
       current_address: data.current_address,
     });
+    if (!updateResult.success) {
+      return {
+        success: false,
+        error: updateResult.error || "Failed to save personal information",
+      };
+    }
 
     // Location info
     await upsertLocationInfo(application!.id, {
