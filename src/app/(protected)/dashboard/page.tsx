@@ -48,7 +48,15 @@ export default async function DashboardPage() {
     redirect(ROUTES.DASHBOARD.CONSENT);
   }
 
-  if (application.status === "Submitted") {
+  // For applicants, only expose Draft/Submitted publicly
+  const isApplicant = user.role === "applicant";
+  const { publicApplicationStatus } =
+    await import("@/lib/public-application-status");
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  if (displayStatus === "Submitted") {
     redirect(ROUTES.DASHBOARD.SUBMITTED);
   }
 

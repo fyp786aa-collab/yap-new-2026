@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/session";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 import { getApplicantByUserId } from "@/lib/db-queries/applicants";
 import {
   getLocationInfo,
@@ -16,7 +17,12 @@ export default async function PersonalInfoPage() {
   const application = await getApplicationByUserId(user.id);
   if (!application || !application.consent_given)
     redirect(ROUTES.DASHBOARD.CONSENT);
-  if (application.status === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
+  const isApplicant = user.role === "applicant";
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  if (displayStatus === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
 
   const [applicant, location, emergency] = await Promise.all([
     getApplicantByUserId(user.id),

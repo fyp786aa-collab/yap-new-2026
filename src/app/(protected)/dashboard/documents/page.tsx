@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/session";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 import {
   getDocumentsByApplication,
   getReferences,
@@ -15,7 +16,12 @@ export default async function DocumentsPage() {
   const application = await getApplicationByUserId(user.id);
   if (!application || !application.consent_given)
     redirect(ROUTES.DASHBOARD.CONSENT);
-  if (application.status === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
+  const isApplicant = user.role === "applicant";
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  if (displayStatus === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
 
   const [documents, references] = await Promise.all([
     getDocumentsByApplication(application.id),

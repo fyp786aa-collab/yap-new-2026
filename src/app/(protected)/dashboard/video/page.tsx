@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/session";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 import { getDocumentsByApplication } from "@/lib/db-queries/sections";
 import { redirect } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
@@ -12,7 +13,12 @@ export default async function VideoPage() {
   const application = await getApplicationByUserId(user.id);
   if (!application || !application.consent_given)
     redirect(ROUTES.DASHBOARD.CONSENT);
-  if (application.status === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
+  const isApplicant = user.role === "applicant";
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  if (displayStatus === "Submitted") redirect(ROUTES.DASHBOARD.SUBMITTED);
 
   const documents = await getDocumentsByApplication(application.id);
   const videoDoc = documents.find((d) => d.document_type === "Video");

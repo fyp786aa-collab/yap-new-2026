@@ -7,6 +7,7 @@ import { getSectionCompletion } from "@/lib/db-queries/applications";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 
 export default async function ProtectedLayout({
   children,
@@ -37,8 +38,14 @@ export default async function ProtectedLayout({
     application = result.data;
   }
 
-  // If submitted, redirect to submitted page (unless already there)
-  if (application.status === "Submitted") {
+  // Determine display status for applicants (only Draft or Submitted)
+  const isApplicant = user.role === "applicant";
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  // If applicant and submitted, other pages may redirect accordingly
+  if (isApplicant && displayStatus === "Submitted") {
     // We'll let the submitted page render; other pages will check
   }
 
@@ -50,14 +57,11 @@ export default async function ProtectedLayout({
         <AppSidebar
           userEmail={user.email}
           completion={completion}
-          applicationStatus={application.status}
+          applicationStatus={displayStatus}
           consentGiven={application.consent_given}
         />
         <div className="flex-1 flex flex-col min-h-screen">
-          <TopBar
-            userEmail={user.email}
-            applicationStatus={application.status}
-          />
+          <TopBar userEmail={user.email} applicationStatus={displayStatus} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50/50">
             <div className="max-w-4xl mx-auto">{children}</div>
           </main>

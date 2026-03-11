@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 import { uploadFileToDrive, deleteFileFromDrive } from "@/lib/google-drive";
 import { upsertDocument, deleteDocument } from "@/lib/db-queries/sections";
 import { MAX_FILE_SIZES } from "@/lib/constants";
@@ -21,7 +22,11 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
-    if (application.status === "Submitted") {
+    const isApplicant = session.user.role === "applicant";
+    if (
+      isApplicant &&
+      publicApplicationStatus(application.status) === "Submitted"
+    ) {
       return NextResponse.json(
         { error: "Application already submitted" },
         { status: 400 },
@@ -122,7 +127,11 @@ export async function DELETE(request: NextRequest) {
         { status: 404 },
       );
     }
-    if (application.status === "Submitted") {
+    const isApplicantDel = session.user.role === "applicant";
+    if (
+      isApplicantDel &&
+      publicApplicationStatus(application.status) === "Submitted"
+    ) {
       return NextResponse.json(
         { error: "Application already submitted" },
         { status: 400 },

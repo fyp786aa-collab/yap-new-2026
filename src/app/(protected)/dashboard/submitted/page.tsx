@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/session";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
+import { publicApplicationStatus } from "@/lib/public-application-status";
 import { redirect } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,12 @@ export default async function SubmittedPage() {
   const user = await requireAuth();
   const application = await getApplicationByUserId(user.id);
 
-  if (!application || application.status !== "Submitted") {
+  const isApplicant = user.role === "applicant";
+  const displayStatus = isApplicant
+    ? publicApplicationStatus(application.status)
+    : application.status;
+
+  if (!application || displayStatus !== "Submitted") {
     redirect(ROUTES.DASHBOARD.HOME);
   }
 
