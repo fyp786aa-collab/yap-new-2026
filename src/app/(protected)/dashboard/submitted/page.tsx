@@ -13,12 +13,16 @@ export default async function SubmittedPage() {
   const user = await requireAuth();
   const application = await getApplicationByUserId(user.id);
 
+  if (!application) {
+    redirect(ROUTES.DASHBOARD.HOME);
+  }
+
   const isApplicant = user.role === "applicant";
   const displayStatus = isApplicant
     ? publicApplicationStatus(application.status)
     : application.status;
 
-  if (!application || displayStatus !== "Submitted") {
+  if (displayStatus !== "Submitted") {
     redirect(ROUTES.DASHBOARD.HOME);
   }
 
