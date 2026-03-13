@@ -1,12 +1,12 @@
 import { emailBaseLayout } from "./base-layout";
 
-export function applicationSubmittedTemplate(): string {
+export function applicationSubmittedTemplate(name = "Candidate"): string {
   const content = `
     <h2 style="color: #152232; font-size: 22px; font-weight: 600; margin: 0 0 16px;">
       Application Submitted Successfully
     </h2>
     <p style="color: #334155; font-size: 15px; line-height: 1.7; margin: 0 0 16px;">
-      Dear Candidate,
+      Dear ${name},
     </p>
     <p style="color: #334155; font-size: 15px; line-height: 1.7; margin: 0 0 16px;">
       Thank you for submitting your application for the AKYSB Pakistan – Young Ambassador Programme (YAP).

@@ -493,11 +493,17 @@ export async function submitApplicationAction(): Promise<ActionResponse> {
 
     // Send confirmation email
     try {
-      await sendEmail(
-        ctx.user.email,
+      const recipientEmail = (ctx.applicant?.email || ctx.user.email).trim();
+      const recipientName = ctx.applicant?.full_name || "Candidate";
+      const emailResult = await sendEmail(
+        recipientEmail,
         "Application Submitted - AKYSB YAP 2026",
-        applicationSubmittedTemplate(),
+        applicationSubmittedTemplate(recipientName),
       );
+
+      if (!emailResult.success) {
+        console.error("Failed to send confirmation email:", emailResult.error);
+      }
     } catch (emailError) {
       console.error("Failed to send confirmation email:", emailError);
       // Don't fail the submission if email fails
