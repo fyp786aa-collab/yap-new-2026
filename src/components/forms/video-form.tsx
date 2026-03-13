@@ -101,11 +101,11 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
                   <li>Should have your own genuine thoughts</li>
                   <li>Don&apos;t read from the screen</li>
                   <li>Record a video (maximum 2 minutes)</li>
-                  <li>Maximum file size: 100MB</li>
-                  <li>Accepted formats: MP4, MOV, AVI, WebM</li>
+                  <li>Maximum file size: 40MB</li>
+                  <li>Accepted format: MP4</li>
                   <li>
-                    If your video is under 2 minutes but exceeds the 100MB
-                    limit, please compress the video before uploading.
+                    If your video is under 2 minutes but exceeds the 40MB limit,
+                    please compress the video before uploading.
                   </li>
                 </ul>
               </div>
@@ -115,10 +115,12 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
 
         <FileUpload
           label="Upload Video"
-          accept=".mp4,.mov,.avi,.webm"
-          maxSize={100 * 1024 * 1024}
+          accept=".mp4"
+          maxSize={40 * 1024 * 1024}
           maxDuration={120}
           uploadUrl={ROUTES.API.UPLOAD}
+          videoUploadSessionUrl={ROUTES.API.VIDEO_UPLOAD_SESSION}
+          videoUploadCompleteUrl={ROUTES.API.VIDEO_UPLOAD_COMPLETE}
           uploadParams={{ applicationId, documentType: "Video" }}
           currentFile={
             existingVideo
@@ -135,6 +137,7 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
             await deleteUploadedFile(applicationId, "Video");
             setUploaded(false);
             setVideoPath("");
+            toast.success("Video removed");
           }}
         />
 

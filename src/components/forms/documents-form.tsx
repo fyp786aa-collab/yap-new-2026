@@ -134,6 +134,7 @@ export function DocumentsForm({
               onRemove={async () => {
                 await deleteUploadedFile(applicationId, "CV");
                 setCvUploaded(false);
+                toast.success("CV removed");
               }}
             />
             <FileUpload
@@ -159,6 +160,7 @@ export function DocumentsForm({
               onRemove={async () => {
                 await deleteUploadedFile(applicationId, "Transcript");
                 setTranscriptUploaded(false);
+                toast.success("Transcript removed");
               }}
             />
           </div>

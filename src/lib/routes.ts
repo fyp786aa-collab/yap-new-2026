@@ -25,6 +25,8 @@ export const ROUTES = {
   API: {
     UPLOAD: "/api/upload",
     DELETE_UPLOAD: "/api/upload",
+    VIDEO_UPLOAD_SESSION: "/api/video/session",
+    VIDEO_UPLOAD_COMPLETE: "/api/video/complete",
   },
 } as const;
 

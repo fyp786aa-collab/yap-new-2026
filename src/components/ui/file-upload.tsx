@@ -14,6 +14,8 @@ interface FileUploadProps {
   currentFile?: { name: string; path: string } | null;
   onUpload?: (file: File) => Promise<void>;
   uploadUrl?: string;
+  videoUploadSessionUrl?: string;
+  videoUploadCompleteUrl?: string;
   uploadParams?: Record<string, string>;
   onUploadComplete?: (fileInfo?: { name: string; path: string }) => void;
   onRemove?: () => Promise<void> | void;
@@ -32,6 +34,8 @@ export function FileUpload({
   currentFile,
   onUpload,
   uploadUrl,
+  videoUploadSessionUrl,
+  videoUploadCompleteUrl,
   uploadParams,
   onUploadComplete,
   onRemove,
@@ -50,6 +54,7 @@ export function FileUpload({
     name: string;
     path: string;
   } | null>(currentFile ?? null);
+  const [hideCurrentFile, setHideCurrentFile] = useState(false);
 
   const loading = externalLoading || uploading;
 
@@ -117,6 +122,107 @@ export function FileUpload({
       setUploading(true);
       setProgress(0);
       try {
+        if (
+          fileType === "Video" &&
+          videoUploadSessionUrl &&
+          videoUploadCompleteUrl &&
+          uploadParams?.applicationId &&
+          uploadParams?.documentType
+        ) {
+          const sessionRes = await fetch(videoUploadSessionUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              applicationId: uploadParams.applicationId,
+              documentType: uploadParams.documentType,
+              fileName: file.name,
+              fileType: file.type || "application/octet-stream",
+              fileSize: file.size,
+            }),
+          });
+
+          const sessionJson = await sessionRes.json().catch(() => ({}));
+          if (!sessionRes.ok || !sessionJson.uploadUrl) {
+            throw new Error(sessionJson.error || "Failed to start upload");
+          }
+
+          let uploadedBytes = 0;
+          const driveData = await new Promise<any>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("PUT", sessionJson.uploadUrl);
+            xhr.setRequestHeader(
+              "Content-Type",
+              file.type || "application/octet-stream",
+            );
+
+            xhr.upload.addEventListener("progress", (e) => {
+              if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                setProgress(pct);
+                uploadedBytes = e.loaded;
+              }
+            });
+
+            xhr.addEventListener("load", () => {
+              // 308 can happen in resumable uploads and may still indicate upload progress.
+              if (
+                (xhr.status >= 200 && xhr.status < 300) ||
+                xhr.status === 308
+              ) {
+                try {
+                  resolve(JSON.parse(xhr.responseText || "{}"));
+                } catch {
+                  resolve({});
+                }
+              } else {
+                reject(new Error("Video upload failed"));
+              }
+            });
+
+            xhr.addEventListener("error", () => {
+              // Some browsers cannot read Google upload responses due CORS even when upload succeeded.
+              // If bytes were sent, continue to finalize using file name fallback.
+              if (uploadedBytes > 0) {
+                resolve({});
+                return;
+              }
+              reject(new Error("Upload failed. Please try again."));
+            });
+            xhr.addEventListener("abort", () =>
+              reject(new Error("Upload cancelled")),
+            );
+
+            xhr.send(file);
+          });
+
+          const completeRes = await fetch(videoUploadCompleteUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              applicationId: uploadParams.applicationId,
+              documentType: uploadParams.documentType,
+              fileId: driveData?.id,
+              fileName: file.name,
+            }),
+          });
+
+          const completeJson = await completeRes.json().catch(() => ({}));
+          if (!completeRes.ok) {
+            throw new Error(completeJson.error || "Failed to finalize upload");
+          }
+
+          setUploadedFile({
+            name: completeJson.fileName || file.name,
+            path: completeJson.filePath || "",
+          });
+          setHideCurrentFile(false);
+          onUploadComplete?.({
+            name: completeJson.fileName || file.name,
+            path: completeJson.filePath || "",
+          });
+          return;
+        }
+
         const formData = new FormData();
         formData.append("file", file);
         if (uploadParams) {
@@ -160,6 +266,7 @@ export function FileUpload({
         });
 
         setUploadedFile({ name: file.name, path: data.filePath || "" });
+        setHideCurrentFile(false);
         onUploadComplete?.({ name: file.name, path: data.filePath || "" });
       } catch (err: any) {
         setLocalError(err?.message || "Upload failed. Please try again.");
@@ -186,7 +293,7 @@ export function FileUpload({
   };
 
   const FileIcon = fileType === "Video" ? Film : FileText;
-  const displayFile = uploadedFile || currentFile;
+  const displayFile = uploadedFile || (hideCurrentFile ? null : currentFile);
 
   return (
     <div className="space-y-1.5">
@@ -208,12 +315,24 @@ export function FileUpload({
               type="button"
               disabled={removing}
               onClick={async () => {
+                const previousFile = displayFile;
                 setRemoving(true);
+                setLocalError("");
+                setUploadedFile(null);
+                setHideCurrentFile(true);
                 try {
                   await onRemove();
-                  setUploadedFile(null);
-                } catch {
-                  // ignore – parent handles errors
+                } catch (err: any) {
+                  if (previousFile) {
+                    if (uploadedFile) {
+                      setUploadedFile(previousFile);
+                    } else {
+                      setHideCurrentFile(false);
+                    }
+                  }
+                  setLocalError(
+                    err?.message || "Failed to remove file. Please try again.",
+                  );
                 } finally {
                   setRemoving(false);
                 }

@@ -78,6 +78,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (documentType === "Video" && file.type !== "video/mp4") {
+      return NextResponse.json(
+        { error: "Invalid file type. Only MP4 is allowed." },
+        { status: 400 },
+      );
+    }
+
     // Upload to Google Drive
     const buffer = Buffer.from(await file.arrayBuffer());
     const driveResult = await uploadFileToDrive(
