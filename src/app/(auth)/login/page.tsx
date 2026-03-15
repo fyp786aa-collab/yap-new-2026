@@ -126,7 +126,7 @@ export default function LoginPage() {
       </p>
 
       <p className="text-center text-sm mt-4">
-        Need help?{" "}
+        Having technical issues?{" "}
         <Link
           href="https://wa.me/923102692232"
           target="_blank"
