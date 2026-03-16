@@ -13,12 +13,12 @@ import { saveAvailabilityAction } from "@/actions/application.actions";
 import { ROUTES } from "@/lib/routes";
 import { SectionWrapper } from "@/components/forms/section-wrapper";
 import { ButtonPrimary } from "@/components/ui/button-primary";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, Calendar } from "lucide-react";
 
 interface AvailabilityFormProps {
-  defaultValues?: { available_july_aug_2026: boolean };
+  defaultValues?: { available_july_aug_2026: boolean | null };
 }
 
 export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
@@ -29,15 +29,19 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
     setValue,
     watch,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<AvailabilityInput>({
     resolver: zodResolver(availabilitySchema),
     defaultValues: {
-      available_july_aug_2026: defaultValues?.available_july_aug_2026 ?? false,
+      available_july_aug_2026:
+        defaultValues?.available_july_aug_2026 ?? undefined,
     },
   });
 
   const available = watch("available_july_aug_2026");
+  const initialAvailability =
+    defaultValues?.available_july_aug_2026 ?? undefined;
+  const hasChanged = available !== initialAvailability;
 
   async function onSubmit(data: AvailabilityInput) {
     setIsLoading(true);
@@ -46,7 +50,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
         available_july_aug_2026: data.available_july_aug_2026,
       });
       if (result.success) {
-        toast.success("Availability confirmed!");
+        toast.success("Availability saved");
         router.push(ROUTES.DASHBOARD.DOCUMENTS);
       } else {
         toast.error(result.error || "Failed to save");
@@ -75,7 +79,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
                   The Young Ambassador Programme internship placements take
                   place during{" "}
                   <strong>
-                    5th July – 16th August 2026 (excluding traveldates)
+                    5th July – 16th August 2026 (excluding travel dates)
                   </strong>
                   . You must be available for the full duration of the
                   placement.
@@ -86,30 +90,52 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
         </Card>
 
         <div>
-          <div className="flex items-start gap-3 p-4 rounded-lg border">
-            <Checkbox
-              id="available"
-              checked={available}
-              onCheckedChange={(checked) =>
-                setValue("available_july_aug_2026", checked === true, {
+          <div className="p-4 rounded-lg border space-y-3">
+            <p className="text-sm leading-relaxed">
+              Please select your availability for the Young Ambassador Programme
+              during{" "}
+              <strong>
+                5th July – 16th August 2026 (excluding travel dates)
+              </strong>
+              .
+            </p>
+            <RadioGroup
+              value={
+                available === true
+                  ? "available"
+                  : available === false
+                    ? "not_available"
+                    : ""
+              }
+              onValueChange={(value) =>
+                setValue("available_july_aug_2026", value === "available", {
                   shouldValidate: true,
-                  shouldDirty: true,
                 })
               }
-              className="mt-0.5"
-            />
-            <label
-              htmlFor="available"
-              className="text-sm leading-relaxed cursor-pointer"
+              className="gap-3"
             >
-              I confirm that I am available to participate in the Young
-              Ambassador Programme during{" "}
-              <strong>
-                5th July – 16th August 2026 (excluding traveldates)
-              </strong>{" "}
-              and I commit to completing the full duration of my internship
-              placement.
-            </label>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="available" id="availability_available" />
+                <label
+                  htmlFor="availability_available"
+                  className="text-sm cursor-pointer"
+                >
+                  Available
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem
+                  value="not_available"
+                  id="availability_not_available"
+                />
+                <label
+                  htmlFor="availability_not_available"
+                  className="text-sm cursor-pointer"
+                >
+                  Not available
+                </label>
+              </div>
+            </RadioGroup>
           </div>
           {errors.available_july_aug_2026 && (
             <p className="text-xs text-red-500 mt-2">
@@ -122,7 +148,7 @@ export function AvailabilityForm({ defaultValues }: AvailabilityFormProps) {
           <ButtonPrimary
             onClick={handleSubmit(onSubmit)}
             loading={isLoading}
-            disabled={!available || !isDirty}
+            disabled={!hasChanged}
           >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
