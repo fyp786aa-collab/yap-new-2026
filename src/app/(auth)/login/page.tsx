@@ -126,16 +126,13 @@ export default function LoginPage() {
       </p>
 
       <p className="text-center text-sm mt-4">
-        Having technical issues?{" "}
-        <Link
-          href="https://wa.me/923102692232"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-yap-accent font-medium hover:underline"
+        Having technical issues? contact us at{" "}
+        <a
+          href="mailto:yap.ysb@akcpk.org"
+          className="text-yap-accent hover:underline"
         >
-          Chat with us on WhatsApp (+92 310 2692232)
-        </Link>
-        .
+          yap.ysb@akcpk.org
+        </a>
       </p>
     </div>
   );
