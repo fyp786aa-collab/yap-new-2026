@@ -1,4 +1,4 @@
-import { getDb, withRetry } from "@/lib/db";
+import { getDb, withRetry, withTransaction } from "@/lib/db";
 import { cache } from "react";
 import { COHORT_YEAR } from "@/lib/constants";
 import type { Application, SectionCompletion } from "@/types";
@@ -104,66 +104,86 @@ export async function markConsentGiven(applicationId: string) {
 export async function touchApplicationSaved(applicationId: string) {
   const sql = getDb();
   try {
+    // Throttle timestamp writes to reduce unnecessary DB updates on rapid saves.
     await sql`
-      UPDATE applications SET last_saved_at = NOW(), updated_at = NOW()
+      UPDATE applications
+      SET last_saved_at = NOW(), updated_at = NOW()
       WHERE id = ${applicationId}
+        AND (
+          last_saved_at IS NULL
+          OR last_saved_at < NOW() - INTERVAL '90 seconds'
+        )
     `;
   } catch (error) {
     console.error("Error touching application:", error);
   }
 }
 
-export async function getSectionCompletion(
-  applicationId: string,
-): Promise<SectionCompletion> {
-  const sql = getDb();
-  try {
-    const rows = await sql`
-      SELECT
-        EXISTS(SELECT 1 FROM applicants ap JOIN applications a ON a.applicant_id = ap.id WHERE a.id = ${applicationId} AND ap.full_name != '' AND ap.full_name IS NOT NULL) as personal_info,
-        EXISTS(SELECT 1 FROM academic_background WHERE application_id = ${applicationId} AND university_name IS NOT NULL) as academic,
-        EXISTS(SELECT 1 FROM placement_readiness WHERE application_id = ${applicationId} AND willing_gilgit_chitral IS NOT NULL) as placement,
-        (SELECT COUNT(*) FROM internship_preferences WHERE application_id = ${applicationId}) >= 6 as internship_prefs,
-        EXISTS(SELECT 1 FROM skills_competencies WHERE application_id = ${applicationId} AND communication IS NOT NULL) as skills,
-        (SELECT COUNT(*) FROM voluntary_experiences WHERE application_id = ${applicationId}) >= 1 as experience,
-        EXISTS(SELECT 1 FROM motivation_alignment WHERE application_id = ${applicationId} AND essay_response IS NOT NULL AND essay_response != '') as motivation,
-        EXISTS(SELECT 1 FROM availability_commitment WHERE application_id = ${applicationId} AND available_july_aug_2026 IS NOT NULL) as availability,
-        EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'CV') as documents,
-        EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'Video') as video
-    `;
-    const r = rows[0];
-    return {
-      personalInfo: !!r.personal_info,
-      academic: !!r.academic,
-      placement: !!r.placement,
-      internshipPrefs: !!r.internship_prefs,
-      skills: !!r.skills,
-      experience: !!r.experience,
-      motivation: !!r.motivation,
-      availability: !!r.availability,
-      documents: !!r.documents,
-      video: !!r.video,
-    };
-  } catch (error) {
-    console.error("Error getting section completion:", error);
-    return {
-      personalInfo: false,
-      academic: false,
-      placement: false,
-      internshipPrefs: false,
-      skills: false,
-      experience: false,
-      motivation: false,
-      availability: false,
-      documents: false,
-      video: false,
-    };
-  }
-}
+export const getSectionCompletion = cache(
+  async (applicationId: string): Promise<SectionCompletion> => {
+    const sql = getDb();
+    try {
+      const rows = await sql`
+        SELECT
+          EXISTS(SELECT 1 FROM applicants ap JOIN applications a ON a.applicant_id = ap.id WHERE a.id = ${applicationId} AND ap.full_name != '' AND ap.full_name IS NOT NULL) as personal_info,
+          EXISTS(SELECT 1 FROM academic_background WHERE application_id = ${applicationId} AND university_name IS NOT NULL) as academic,
+          EXISTS(SELECT 1 FROM placement_readiness WHERE application_id = ${applicationId} AND willing_gilgit_chitral IS NOT NULL) as placement,
+          (SELECT COUNT(*) FROM internship_preferences WHERE application_id = ${applicationId}) >= 6 as internship_prefs,
+          EXISTS(SELECT 1 FROM skills_competencies WHERE application_id = ${applicationId} AND communication IS NOT NULL) as skills,
+          (SELECT COUNT(*) FROM voluntary_experiences WHERE application_id = ${applicationId}) >= 1 as experience,
+          EXISTS(SELECT 1 FROM motivation_alignment WHERE application_id = ${applicationId} AND essay_response IS NOT NULL AND essay_response != '') as motivation,
+          EXISTS(SELECT 1 FROM availability_commitment WHERE application_id = ${applicationId} AND available_july_aug_2026 IS NOT NULL) as availability,
+          EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'CV') as documents,
+          EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'Video') as video
+      `;
+      const r = rows[0];
+      return {
+        personalInfo: !!r.personal_info,
+        academic: !!r.academic,
+        placement: !!r.placement,
+        internshipPrefs: !!r.internship_prefs,
+        skills: !!r.skills,
+        experience: !!r.experience,
+        motivation: !!r.motivation,
+        availability: !!r.availability,
+        documents: !!r.documents,
+        video: !!r.video,
+      };
+    } catch (error) {
+      console.error("Error getting section completion:", error);
+      return {
+        personalInfo: false,
+        academic: false,
+        placement: false,
+        internshipPrefs: false,
+        skills: false,
+        experience: false,
+        motivation: false,
+        availability: false,
+        documents: false,
+        video: false,
+      };
+    }
+  },
+);
 
 export async function getFullApplication(applicationId: string) {
-  const sql = getDb();
   try {
+    const results = (await withTransaction((txn) => [
+      txn`SELECT a.*, ap.* FROM applications a JOIN applicants ap ON a.applicant_id = ap.id WHERE a.id = ${applicationId}`,
+      txn`SELECT * FROM location_info WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM emergency_contacts WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM academic_background WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM placement_readiness WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM internship_preferences WHERE application_id = ${applicationId} ORDER BY priority_rank`,
+      txn`SELECT * FROM skills_competencies WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM voluntary_experiences WHERE application_id = ${applicationId} ORDER BY from_year`,
+      txn`SELECT * FROM motivation_alignment WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM availability_commitment WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM documents WHERE application_id = ${applicationId}`,
+      txn`SELECT * FROM application_references WHERE application_id = ${applicationId}`,
+    ])) as Array<Array<Record<string, unknown>>>;
+
     const [
       appRows,
       locRows,
@@ -177,32 +197,19 @@ export async function getFullApplication(applicationId: string) {
       availRows,
       docRows,
       refRows,
-    ] = await Promise.all([
-      sql`SELECT a.*, ap.* FROM applications a JOIN applicants ap ON a.applicant_id = ap.id WHERE a.id = ${applicationId}`,
-      sql`SELECT * FROM location_info WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM emergency_contacts WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM academic_background WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM placement_readiness WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM internship_preferences WHERE application_id = ${applicationId} ORDER BY priority_rank`,
-      sql`SELECT * FROM skills_competencies WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM voluntary_experiences WHERE application_id = ${applicationId} ORDER BY from_year`,
-      sql`SELECT * FROM motivation_alignment WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM availability_commitment WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM documents WHERE application_id = ${applicationId}`,
-      sql`SELECT * FROM application_references WHERE application_id = ${applicationId}`,
-    ]);
+    ] = results;
 
     return {
-      application: appRows[0] || null,
-      locationInfo: locRows[0] || null,
-      emergencyContact: emergRows[0] || null,
-      academic: acadRows[0] || null,
-      placement: placRows[0] || null,
+      application: appRows?.[0] || null,
+      locationInfo: locRows?.[0] || null,
+      emergencyContact: emergRows?.[0] || null,
+      academic: acadRows?.[0] || null,
+      placement: placRows?.[0] || null,
       internshipPrefs: prefRows || [],
-      skills: skillRows[0] || null,
+      skills: skillRows?.[0] || null,
       experience: expRows || [],
-      motivation: motRows[0] || null,
-      availability: availRows[0] || null,
+      motivation: motRows?.[0] || null,
+      availability: availRows?.[0] || null,
       documents: docRows || [],
       references: refRows || [],
     };

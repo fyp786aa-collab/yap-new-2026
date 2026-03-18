@@ -9,6 +9,8 @@ import {
 import argon2 from "argon2";
 import { ROUTES } from "@/lib/routes";
 
+const USER_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -64,14 +66,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as Record<string, unknown>).role as string;
         token.emailVerified = (user as Record<string, unknown>)
           .emailVerified as boolean;
+        (token as Record<string, unknown>).userCheckedAt = Date.now();
+        return token;
       }
 
-      // On subsequent requests, verify user still exists in DB
-      if (token.id && !user) {
-        const dbUser = await findUserById(token.id as string);
-        if (!dbUser) {
-          // User was deleted — invalidate the token
-          return null as unknown as typeof token;
+      // Re-check user existence only periodically instead of every request.
+      if (token.id) {
+        const lastChecked =
+          typeof (token as Record<string, unknown>).userCheckedAt === "number"
+            ? ((token as Record<string, unknown>).userCheckedAt as number)
+            : 0;
+
+        const shouldRecheck =
+          Date.now() - lastChecked > USER_RECHECK_INTERVAL_MS;
+
+        if (shouldRecheck) {
+          const dbUser = await findUserById(token.id as string);
+          if (!dbUser) {
+            // User was deleted — invalidate the token
+            return null as unknown as typeof token;
+          }
+          (token as Record<string, unknown>).userCheckedAt = Date.now();
         }
       }
 
