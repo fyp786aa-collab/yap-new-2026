@@ -1,6 +1,12 @@
 import { getDb } from "@/lib/db";
 import type { User } from "@/types";
 
+export interface EmailVerificationStatus {
+  exists: boolean;
+  emailVerified: boolean;
+  verificationLinkExpired: boolean;
+}
+
 export async function findUserByEmail(email: string): Promise<User | null> {
   const sql = getDb();
   try {
@@ -26,6 +32,52 @@ export async function findUserById(id: string): Promise<User | null> {
   } catch (error) {
     console.error("Error finding user by id:", error);
     return null;
+  }
+}
+
+export async function getEmailVerificationStatusByEmail(
+  email: string,
+): Promise<EmailVerificationStatus> {
+  const sql = getDb();
+  try {
+    const rows = await sql`
+      SELECT email_verified, email_verify_expires
+      FROM users
+      WHERE email = ${email.toLowerCase()}
+      LIMIT 1
+    `;
+
+    if (rows.length === 0) {
+      return {
+        exists: false,
+        emailVerified: false,
+        verificationLinkExpired: false,
+      };
+    }
+
+    const row = rows[0] as {
+      email_verified: boolean;
+      email_verify_expires: string | null;
+    };
+
+    const emailVerified = row.email_verified;
+    const verificationLinkExpired =
+      !emailVerified &&
+      (!row.email_verify_expires ||
+        new Date(row.email_verify_expires).getTime() <= Date.now());
+
+    return {
+      exists: true,
+      emailVerified,
+      verificationLinkExpired,
+    };
+  } catch (error) {
+    console.error("Error getting email verification status:", error);
+    return {
+      exists: false,
+      emailVerified: false,
+      verificationLinkExpired: false,
+    };
   }
 }
 
@@ -88,6 +140,34 @@ export async function verifyUserEmail(tokenHash: string) {
   } catch (error) {
     console.error("Error verifying email:", error);
     return { success: false, error: "Failed to verify email" };
+  }
+}
+
+export async function storeEmailVerificationToken(
+  email: string,
+  tokenHash: string,
+  expires: string,
+) {
+  const sql = getDb();
+  try {
+    const rows = await sql`
+      UPDATE users
+      SET email_verify_token = ${tokenHash},
+          email_verify_expires = ${expires}::timestamptz,
+          updated_at = NOW()
+      WHERE email = ${email.toLowerCase()}
+        AND email_verified = false
+      RETURNING id, email
+    `;
+
+    return { success: true, found: rows.length > 0, data: rows[0] };
+  } catch (error) {
+    console.error("Error storing email verification token:", error);
+    return {
+      success: false,
+      found: false,
+      error: "Failed to refresh verification link",
+    };
   }
 }
 

@@ -2,9 +2,10 @@
 
 ## Prerequisites
 
-- Node.js 18+ and pnpm
+- Node.js 20+ and pnpm
 - Neon PostgreSQL database (tables pre-created)
-- Gmail account with App Password
+- Resend account (domain verified)
+- Gmail account with App Password (fallback)
 - Google Cloud project with Drive API enabled (OAuth2 credentials)
 
 ## Quick Start
@@ -39,12 +40,27 @@ Generate with:
 openssl rand -base64 32
 ```
 
-### Gmail SMTP
+### Resend (Primary Email Provider)
+
+1. Log in to [Resend](https://resend.com/)
+2. Go to **Domains** and add your sending domain (for example, `mail.yourdomain.com`)
+3. Add the required DNS records in your DNS provider (SPF/DKIM, and DMARC if recommended)
+4. Wait until domain status is **Verified** in Resend
+5. Go to **API Keys** and create an API key
+6. Set `RESEND_API_KEY` in `.env`
+7. Set `RESEND_FROM` to a verified sender, for example: `AKYSB Pakistan - YAP <noreply@mail.yourdomain.com>`
+
+### Gmail SMTP (Fallback)
 
 1. Go to Google Account → Security → 2-Step Verification → App Passwords
 2. Generate an app password for "Mail"
 3. Set `GMAIL_USER` to your Gmail address
 4. Set `GMAIL_APP_PASSWORD` to the 16-character app password
+
+### Shared Email Variables
+
+1. Set `EMAIL_FROM` to your default sender identity. Recommended to match `RESEND_FROM`
+2. If Resend fails at runtime, the app automatically falls back to Gmail SMTP
 
 ### Google Drive Setup (OAuth2)
 
@@ -92,7 +108,7 @@ The database tables should be pre-created in Neon. Required tables:
 - **Auth**: NextAuth v5 (beta) with Credentials provider
 - **Database**: Neon PostgreSQL (serverless)
 - **Validation**: Zod + React Hook Form
-- **Email**: Nodemailer (Gmail SMTP)
+- **Email**: Resend (primary) + Nodemailer/Gmail (fallback)
 - **File Storage**: Google Drive API
 - **Password Hashing**: Argon2
 

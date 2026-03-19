@@ -8,16 +8,30 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
-import { preLoginCheckAction } from "@/actions/auth.actions";
+import {
+  preLoginCheckAction,
+  resendVerificationEmailAction,
+} from "@/actions/auth.actions";
 import { ROUTES } from "@/lib/routes";
 import { FormInput } from "@/components/ui/form-input";
 import { ButtonPrimary } from "@/components/ui/button-primary";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showResendDialog, setShowResendDialog] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
 
   const {
     register,
@@ -27,13 +41,47 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  async function handleResendVerificationEmail() {
+    if (!resendEmail) {
+      toast.error("Email is missing. Please enter your email and try again.");
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const result = await resendVerificationEmailAction(resendEmail);
+      if (!result.success) {
+        toast.error(result.error || "Unable to resend verification email");
+        return;
+      }
+
+      toast.success("Verification email sent. Please check your inbox.");
+      setShowResendDialog(false);
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  }
+
   async function onSubmit(data: LoginInput) {
     setIsLoading(true);
     try {
       // Pre-check email verification status
       const check = await preLoginCheckAction(data.email);
       if (!check.success) {
-        toast.error(check.error || "Unable to sign in");
+        if (check.data?.verificationLinkExpired) {
+          setResendEmail(check.data.email || data.email);
+          setShowResendDialog(true);
+          toast.error(
+            "Your verification link has expired. Please resend a new verification email.",
+          );
+        } else {
+          toast.error(
+            check.error ||
+              "Your email is not verified yet. Please verify your email.",
+          );
+        }
         setIsLoading(false);
         return;
       }
@@ -89,7 +137,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[38px] text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-9.5 text-muted-foreground hover:text-foreground transition-colors"
               tabIndex={-1}
             >
               {showPassword ? (
@@ -134,6 +182,37 @@ export default function LoginPage() {
           yap.ysb@akcpk.org
         </a>
       </p>
+
+      <Dialog open={showResendDialog} onOpenChange={setShowResendDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Verification Link Expired</DialogTitle>
+            <DialogDescription>
+              Your previous verification link has expired. Click below to resend
+              a new verification email.
+            </DialogDescription>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground">{resendEmail}</p>
+
+          <DialogFooter>
+            <ButtonPrimary
+              type="button"
+              variant="outline"
+              onClick={() => setShowResendDialog(false)}
+            >
+              Cancel
+            </ButtonPrimary>
+            <ButtonPrimary
+              type="button"
+              onClick={handleResendVerificationEmail}
+              loading={isResending}
+            >
+              Resend Verification Email
+            </ButtonPrimary>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

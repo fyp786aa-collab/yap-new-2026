@@ -8,6 +8,8 @@ import {
 import {
   createUser,
   findUserByEmail,
+  getEmailVerificationStatusByEmail,
+  storeEmailVerificationToken,
   verifyUserEmail,
   storeResetToken,
   resetPassword,
@@ -25,29 +27,114 @@ import type { ActionResponse } from "@/types";
 
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
+interface PreLoginCheckData {
+  email?: string;
+  verificationLinkExpired: boolean;
+}
+
 /**
  * Pre-login check: verify the email exists and is verified
  * before attempting signIn (to surface proper error messages).
  */
 export async function preLoginCheckAction(
   email: string,
-): Promise<ActionResponse> {
+): Promise<ActionResponse<PreLoginCheckData>> {
   try {
-    const user = await findUserByEmail(email);
-    if (!user) {
+    const status = await getEmailVerificationStatusByEmail(email);
+    if (!status.exists) {
       // Don't reveal whether account exists
       return { success: true };
     }
-    if (!user.email_verified) {
+
+    if (!status.emailVerified) {
+      if (status.verificationLinkExpired) {
+        return {
+          success: false,
+          error: "Your verification link has expired.",
+          data: {
+            email,
+            verificationLinkExpired: true,
+          },
+        };
+      }
+
       return {
         success: false,
         error:
-          "Please verify your email before logging in. Check your inbox for the verification link.",
+          "Your email is not verified yet. Please check your inbox and verify your email.",
+        data: {
+          email,
+          verificationLinkExpired: false,
+        },
       };
     }
+
     return { success: true };
   } catch {
     return { success: true }; // fail open, let signIn handle it
+  }
+}
+
+export async function resendVerificationEmailAction(
+  email: string,
+): Promise<ActionResponse> {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return { success: false, error: "Email is required" };
+    }
+
+    const status = await getEmailVerificationStatusByEmail(normalizedEmail);
+    if (!status.exists) {
+      return {
+        success: true,
+      };
+    }
+
+    if (status.emailVerified) {
+      return {
+        success: false,
+        error: "This email is already verified. Please sign in.",
+      };
+    }
+
+    const token = generateToken();
+    const tokenHash = hashToken(token);
+    const expires = addHours(new Date(), 24).toISOString();
+
+    const storeResult = await storeEmailVerificationToken(
+      normalizedEmail,
+      tokenHash,
+      expires,
+    );
+
+    if (!storeResult.success || !storeResult.found) {
+      return {
+        success: false,
+        error: storeResult.error || "Unable to resend verification email",
+      };
+    }
+
+    const verifyUrl = `${APP_URL}/verify-email?token=${token}`;
+    const emailResult = await sendEmail(
+      normalizedEmail,
+      "Verify Your Email - AKYSB YAP 2026",
+      verifyEmailTemplate(verifyUrl),
+    );
+
+    if (!emailResult.success) {
+      return {
+        success: false,
+        error:
+          emailResult.error ||
+          "Failed to send verification email. Please try again.",
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Resend verification email error:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
 
