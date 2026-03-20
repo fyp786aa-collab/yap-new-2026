@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/session";
 import {
   getApplicationByUserId,
@@ -39,6 +39,11 @@ import { nowPKTISO } from "@/lib/utils/datetime";
 import { sendEmail } from "@/lib/email";
 import { applicationSubmittedTemplate } from "@/lib/email-templates/application-submitted";
 import type { ActionResponse } from "@/types";
+
+function revalidateApplicationData(applicationId: string) {
+  revalidateTag(`application:${applicationId}`, "max");
+  revalidatePath("/dashboard", "layout");
+}
 
 async function getAppContext() {
   const user = await requireAuth();
@@ -163,7 +168,7 @@ export async function savePersonalInfoAction(
     });
 
     await touchApplicationSaved(application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save personal info error:", error);
@@ -205,7 +210,7 @@ export async function saveAcademicAction(
     });
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save academic error:", error);
@@ -238,7 +243,7 @@ export async function savePlacementAction(
     });
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save placement error:", error);
@@ -266,7 +271,7 @@ export async function saveInternshipPrefsAction(formData: {
     );
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save internship prefs error:", error);
@@ -303,7 +308,7 @@ export async function saveSkillsAction(
     });
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save skills error:", error);
@@ -336,7 +341,7 @@ export async function saveExperienceAction(formData: {
     );
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save experience error:", error);
@@ -366,7 +371,7 @@ export async function saveMotivationAction(formData: {
     );
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save motivation error:", error);
@@ -394,7 +399,7 @@ export async function saveAvailabilityAction(formData: {
     );
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save availability error:", error);
@@ -440,7 +445,7 @@ export async function saveDocumentsAction(
     }
 
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save documents error:", error);
@@ -457,7 +462,7 @@ export async function saveVideoAction(): Promise<ActionResponse> {
     // Video upload is handled by the upload API route
     // This action just touches the save timestamp
     await touchApplicationSaved(ctx.application!.id);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
     return { success: true };
   } catch (error) {
     console.error("Save video error:", error);
@@ -489,7 +494,7 @@ export async function submitApplicationAction(): Promise<ActionResponse> {
     // Update status to submitted
     const now = nowPKTISO();
     await updateApplicationStatus(ctx.application!.id, "Submitted", now);
-    revalidatePath("/dashboard", "layout");
+    revalidateApplicationData(ctx.application!.id);
 
     // Send confirmation email
     try {

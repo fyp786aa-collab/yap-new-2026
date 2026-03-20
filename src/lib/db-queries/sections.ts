@@ -1,4 +1,5 @@
 import { getDb, withTransaction } from "@/lib/db";
+import { cache } from "react";
 
 // ==================== LOCATION INFO ====================
 
@@ -294,18 +295,20 @@ export async function upsertDocument(
   }
 }
 
-export async function getDocumentsByApplication(applicationId: string) {
-  const sql = getDb();
-  try {
-    const rows = await sql`
+export const getDocumentsByApplication = cache(
+  async (applicationId: string) => {
+    const sql = getDb();
+    try {
+      const rows = await sql`
       SELECT * FROM documents WHERE application_id = ${applicationId}
     `;
-    return rows;
-  } catch (error) {
-    console.error("Error getting documents:", error);
-    return [];
-  }
-}
+      return rows;
+    } catch (error) {
+      console.error("Error getting documents:", error);
+      return [];
+    }
+  },
+);
 
 export async function deleteDocument(
   applicationId: string,
@@ -372,7 +375,7 @@ export async function deleteReference(
 
 // ==================== SECTION DATA FETCHERS ====================
 
-export async function getLocationInfo(applicationId: string) {
+export const getLocationInfo = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -382,9 +385,9 @@ export async function getLocationInfo(applicationId: string) {
     console.error("Error getting location info:", error);
     return null;
   }
-}
+});
 
-export async function getEmergencyContact(applicationId: string) {
+export const getEmergencyContact = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -394,9 +397,9 @@ export async function getEmergencyContact(applicationId: string) {
     console.error("Error getting emergency contact:", error);
     return null;
   }
-}
+});
 
-export async function getAcademicBackground(applicationId: string) {
+export const getAcademicBackground = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -406,9 +409,9 @@ export async function getAcademicBackground(applicationId: string) {
     console.error("Error getting academic background:", error);
     return null;
   }
-}
+});
 
-export async function getPlacementReadiness(applicationId: string) {
+export const getPlacementReadiness = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -418,9 +421,9 @@ export async function getPlacementReadiness(applicationId: string) {
     console.error("Error getting placement readiness:", error);
     return null;
   }
-}
+});
 
-export async function getInternshipPreferences(applicationId: string) {
+export const getInternshipPreferences = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -430,9 +433,9 @@ export async function getInternshipPreferences(applicationId: string) {
     console.error("Error getting internship preferences:", error);
     return [];
   }
-}
+});
 
-export async function getSkillsCompetencies(applicationId: string) {
+export const getSkillsCompetencies = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -442,9 +445,9 @@ export async function getSkillsCompetencies(applicationId: string) {
     console.error("Error getting skills:", error);
     return null;
   }
-}
+});
 
-export async function getExperienceEngagement(applicationId: string) {
+export const getExperienceEngagement = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -454,9 +457,9 @@ export async function getExperienceEngagement(applicationId: string) {
     console.error("Error getting experience:", error);
     return [];
   }
-}
+});
 
-export async function getMotivationAlignment(applicationId: string) {
+export const getMotivationAlignment = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -466,21 +469,23 @@ export async function getMotivationAlignment(applicationId: string) {
     console.error("Error getting motivation:", error);
     return null;
   }
-}
+});
 
-export async function getAvailabilityCommitment(applicationId: string) {
-  const sql = getDb();
-  try {
-    const rows =
-      await sql`SELECT * FROM availability_commitment WHERE application_id = ${applicationId}`;
-    return rows[0] || null;
-  } catch (error) {
-    console.error("Error getting availability:", error);
-    return null;
-  }
-}
+export const getAvailabilityCommitment = cache(
+  async (applicationId: string) => {
+    const sql = getDb();
+    try {
+      const rows =
+        await sql`SELECT * FROM availability_commitment WHERE application_id = ${applicationId}`;
+      return rows[0] || null;
+    } catch (error) {
+      console.error("Error getting availability:", error);
+      return null;
+    }
+  },
+);
 
-export async function getReferences(applicationId: string) {
+export const getReferences = cache(async (applicationId: string) => {
   const sql = getDb();
   try {
     const rows =
@@ -490,4 +495,4 @@ export async function getReferences(applicationId: string) {
     console.error("Error getting references:", error);
     return [];
   }
-}
+});

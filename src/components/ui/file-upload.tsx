@@ -57,6 +57,7 @@ export function FileUpload({
   const [hideCurrentFile, setHideCurrentFile] = useState(false);
 
   const loading = externalLoading || uploading;
+  const uploadDisabled = loading || removing;
 
   const handleFile = async (file: File) => {
     setLocalError("");
@@ -281,12 +282,17 @@ export function FileUpload({
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    if (uploadDisabled) return;
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) await handleFile(file);
   };
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadDisabled) {
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     const file = e.target.files?.[0];
     if (file) await handleFile(file);
     if (inputRef.current) inputRef.current.value = "";
@@ -352,17 +358,24 @@ export function FileUpload({
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
+            if (uploadDisabled) return;
             setDragOver(true);
           }}
-          onDragLeave={() => setDragOver(false)}
+          onDragLeave={() => {
+            if (uploadDisabled) return;
+            setDragOver(false);
+          }}
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer",
             dragOver
               ? "border-[#82a845] bg-green-50"
               : "border-gray-300 hover:border-[#82a845] hover:bg-gray-50",
             (error || localError) && "border-[#dc2626] bg-[#fef2f2]",
+            uploadDisabled && "cursor-not-allowed opacity-70",
           )}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => {
+            if (!uploadDisabled) inputRef.current?.click();
+          }}
         >
           <Upload
             className={cn(
@@ -387,6 +400,7 @@ export function FileUpload({
         type="file"
         accept={accept}
         onChange={handleChange}
+        disabled={uploadDisabled}
         className="hidden"
       />
 

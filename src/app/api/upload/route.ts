@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { auth } from "@/auth";
 import { getApplicationByUserId } from "@/lib/db-queries/applications";
 import { publicApplicationStatus } from "@/lib/public-application-status";
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
     // Save to database
     const filePath = `https://drive.google.com/file/d/${driveResult.fileId}/view`;
     await upsertDocument(applicationId, documentType, filePath, file.name);
+    revalidateTag(`application:${applicationId}`, "max");
 
     return NextResponse.json({
       success: true,
@@ -178,6 +180,10 @@ export async function DELETE(request: NextRequest) {
       if (match) {
         await deleteFileFromDrive(match[1]);
       }
+    }
+
+    if (result.success) {
+      revalidateTag(`application:${applicationId}`, "max");
     }
 
     return NextResponse.json({ success: true });
