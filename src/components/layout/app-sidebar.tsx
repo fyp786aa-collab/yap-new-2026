@@ -91,29 +91,19 @@ export function AppSidebar({
 
       <SidebarContent className="bg-yap-primary">
         {/* Dashboard link */}
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild={!isDashboardActive}
-                isActive={isDashboardActive}
-                className="text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white"
-              >
-                {isDashboardActive ? (
-                  <span>
-                    <Home className="w-4 h-4" />
-                    <span>Dashboard</span>
-                  </span>
-                ) : (
-                  <Link href={ROUTES.DASHBOARD.HOME}>
-                    <Home className="w-4 h-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        <SidebarMenuButton
+          asChild
+          isActive={isDashboardActive}
+          className="text-white/70 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/15 data-[active=true]:text-white"
+        >
+          <Link
+            href={ROUTES.DASHBOARD.HOME}
+            className="flex items-center gap-2"
+          >
+            <Home className="w-4 h-4" />
+            <span>Dashboard</span>
+          </Link>
+        </SidebarMenuButton>
 
         {/* Form Sections */}
         <SidebarGroup>

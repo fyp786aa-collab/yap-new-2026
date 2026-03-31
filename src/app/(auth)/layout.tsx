@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
 import Image from "next/image";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, APPLICATION_DEADLINE } from "@/lib/constants";
 
 export default async function AuthLayout({
   children,
@@ -18,7 +18,7 @@ export default async function AuthLayout({
     <div className="flex min-h-screen">
       {/* Left panel - branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-yap-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-yap-accent)_0%,_transparent_50%)] opacity-20" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-yap-accent)_0%,transparent_50%)] opacity-20" />
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <div className="animate-fade-in-up">
             <div className="mb-8">
@@ -77,6 +77,14 @@ export default async function AuthLayout({
             <span className="text-lg font-bold text-yap-primary">
               {APP_NAME}
             </span>
+          </div>
+          <div className="mb-6 overflow-hidden rounded-xl border border-amber-200 bg-linear-to-r from-amber-100 via-orange-100 to-rose-100 p-4 text-amber-900 shadow-sm animate-fade-in-up">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700/90">
+              Application Deadline
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              Submit your application by {APPLICATION_DEADLINE}
+            </p>
           </div>
           {children}
         </div>
