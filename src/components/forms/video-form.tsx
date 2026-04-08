@@ -46,10 +46,6 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
   }, [videoPath]);
 
   async function onSave() {
-    if (!uploaded) {
-      toast.error("Please upload your video first");
-      return;
-    }
     setIsLoading(true);
     try {
       router.push(ROUTES.DASHBOARD.REVIEW);
@@ -113,8 +109,12 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
           </CardContent>
         </Card>
 
+        <p className="text-xs text-muted-foreground">
+          Video upload is optional.
+        </p>
+
         <FileUpload
-          label="Upload Video"
+          label="Upload Video (Optional)"
           accept=".mp4"
           maxSize={40 * 1024 * 1024}
           maxDuration={120}
@@ -127,7 +127,6 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
               ? { name: existingVideo.fileName, path: existingVideo.filePath }
               : null
           }
-          required
           fileType="Video"
           onUploadComplete={(fileInfo) => {
             setUploaded(true);
@@ -162,16 +161,12 @@ export function VideoForm({ applicationId, existingVideo }: VideoFormProps) {
         {!uploaded && (
           <div className="flex items-center gap-2 text-sm text-amber-600">
             <AlertCircle className="w-4 h-4" />
-            <span>Please upload your video to complete this section</span>
+            <span>You can continue without uploading a video.</span>
           </div>
         )}
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary
-            onClick={onSave}
-            loading={isLoading}
-            disabled={!uploaded}
-          >
+          <ButtonPrimary onClick={onSave} loading={isLoading}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue to Review
           </ButtonPrimary>

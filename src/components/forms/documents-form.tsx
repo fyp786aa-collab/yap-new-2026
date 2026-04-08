@@ -45,16 +45,11 @@ export function DocumentsForm({
 }: DocumentsFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [cvUploaded, setCvUploaded] = useState(!!existingCV);
-  const [transcriptUploaded, setTranscriptUploaded] =
-    useState(!!existingTranscript);
-  const [cvError, setCvError] = useState("");
-  const [transcriptError, setTranscriptError] = useState("");
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty: formIsDirty },
+    formState: { errors },
   } = useForm<DocumentsInput>({
     resolver: zodResolver(documentsSchema),
     defaultValues: {
@@ -71,20 +66,6 @@ export function DocumentsForm({
   });
 
   async function onSubmit(data: DocumentsInput) {
-    // Validate required file uploads
-    let hasFileError = false;
-    if (!cvUploaded) {
-      setCvError("CV/Resume is required. Please upload your CV.");
-      hasFileError = true;
-    }
-    if (!transcriptUploaded) {
-      setTranscriptError(
-        "Academic transcript is required. Please upload your transcript.",
-      );
-      hasFileError = true;
-    }
-    if (hasFileError) return;
-
     setIsLoading(true);
     try {
       const result = await saveDocumentsAction(data);
@@ -113,9 +94,12 @@ export function DocumentsForm({
           <h3 className="text-sm font-semibold text-yap-primary mb-3">
             Upload Documents
           </h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            CV/Resume and transcript are optional.
+          </p>
           <div className="space-y-4">
             <FileUpload
-              label="CV/Resume"
+              label="CV/Resume (Optional)"
               accept=".pdf,.doc,.docx"
               maxSize={2 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}
@@ -125,20 +109,13 @@ export function DocumentsForm({
                   ? { name: existingCV.fileName, path: existingCV.filePath }
                   : null
               }
-              required
-              error={cvError}
-              onUploadComplete={() => {
-                setCvUploaded(true);
-                setCvError("");
-              }}
               onRemove={async () => {
                 await deleteUploadedFile(applicationId, "CV");
-                setCvUploaded(false);
                 toast.success("CV removed");
               }}
             />
             <FileUpload
-              label="University academic transcript"
+              label="University academic transcript (Optional)"
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               maxSize={2 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}
@@ -151,15 +128,8 @@ export function DocumentsForm({
                     }
                   : null
               }
-              required
-              error={transcriptError}
-              onUploadComplete={() => {
-                setTranscriptUploaded(true);
-                setTranscriptError("");
-              }}
               onRemove={async () => {
                 await deleteUploadedFile(applicationId, "Transcript");
-                setTranscriptUploaded(false);
                 toast.success("Transcript removed");
               }}
             />
@@ -171,31 +141,27 @@ export function DocumentsForm({
         {/* Academic Reference */}
         <div>
           <h3 className="text-sm font-semibold text-yap-primary mb-3">
-            Academic Reference (Required)
+            Academic Reference (Optional)
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormInput
               label="Name"
-              required
               error={errors.academic_ref_name?.message}
               {...register("academic_ref_name")}
             />
             <FormInput
               label="Position/Title"
-              required
               error={errors.academic_ref_position?.message}
               {...register("academic_ref_position")}
             />
             <FormInput
               label="Contact Number"
-              required
               error={errors.academic_ref_contact?.message}
               {...register("academic_ref_contact")}
             />
             <FormInput
               label="Email"
               type="email"
-              required
               error={errors.academic_ref_email?.message}
               {...register("academic_ref_email")}
             />
@@ -235,11 +201,7 @@ export function DocumentsForm({
         </div>
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary
-            type="submit"
-            loading={isLoading}
-            disabled={!formIsDirty && cvUploaded && transcriptUploaded}
-          >
+          <ButtonPrimary type="submit" loading={isLoading}>
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>

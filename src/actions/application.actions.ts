@@ -423,13 +423,18 @@ export async function saveDocumentsAction(
 
     const data = parsed.data;
 
-    // Academic reference (required)
-    await upsertReference(ctx.application!.id, "Academic", {
-      name: data.academic_ref_name,
-      position: data.academic_ref_position || null,
-      contact_number: data.academic_ref_contact || null,
-      email: data.academic_ref_email || null,
-    });
+    // Academic reference (optional)
+    if (data.academic_ref_name && data.academic_ref_name.trim()) {
+      await upsertReference(ctx.application!.id, "Academic", {
+        name: data.academic_ref_name,
+        position: data.academic_ref_position || null,
+        contact_number: data.academic_ref_contact || null,
+        email: data.academic_ref_email || null,
+      });
+    } else {
+      // If academic fields are empty, remove any existing academic reference
+      await deleteReference(ctx.application!.id, "Academic");
+    }
 
     // Supervisor reference (optional)
     if (data.supervisor_ref_name && data.supervisor_ref_name.trim()) {

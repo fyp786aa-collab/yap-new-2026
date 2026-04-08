@@ -142,8 +142,8 @@ export const getSectionCompletion = cache(
               (SELECT COUNT(*) FROM voluntary_experiences WHERE application_id = ${applicationId}) >= 1 as experience,
               EXISTS(SELECT 1 FROM motivation_alignment WHERE application_id = ${applicationId} AND essay_response IS NOT NULL AND essay_response != '') as motivation,
               EXISTS(SELECT 1 FROM availability_commitment WHERE application_id = ${applicationId} AND available_july_aug_2026 IS NOT NULL) as availability,
-              EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'CV') as documents,
-              EXISTS(SELECT 1 FROM documents WHERE application_id = ${applicationId} AND document_type = 'Video') as video
+              TRUE as documents,
+              TRUE as video
           `;
           const r = rows[0];
           return {
