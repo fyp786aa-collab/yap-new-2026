@@ -80,7 +80,7 @@ export default async function AuthLayout({
           </div>
           <div className="mb-6 overflow-hidden rounded-xl border border-amber-200 bg-linear-to-r from-amber-100 via-orange-100 to-rose-100 p-4 text-amber-900 shadow-sm animate-fade-in-up">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700/90">
-              Application Deadline
+              Application Deadline Extended
             </p>
             <p className="mt-1 text-sm font-semibold">
               Submit your application by {APPLICATION_DEADLINE}
