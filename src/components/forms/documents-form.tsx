@@ -45,6 +45,8 @@ export function DocumentsForm({
 }: DocumentsFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [cvUploaded, setCvUploaded] = useState(!!existingCV);
+  const [cvError, setCvError] = useState("");
 
   const {
     register,
@@ -66,6 +68,11 @@ export function DocumentsForm({
   });
 
   async function onSubmit(data: DocumentsInput) {
+    if (!cvUploaded) {
+      setCvError("CV/Resume is required. Please upload your CV.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const result = await saveDocumentsAction(data);
@@ -95,11 +102,11 @@ export function DocumentsForm({
             Upload Documents
           </h3>
           <p className="text-xs text-muted-foreground mb-3">
-            CV/Resume and transcript are optional.
+            Fields marked with * are required.
           </p>
           <div className="space-y-4">
             <FileUpload
-              label="CV/Resume (Optional)"
+              label="CV/Resume"
               accept=".pdf,.doc,.docx"
               maxSize={2 * 1024 * 1024}
               uploadUrl={ROUTES.API.UPLOAD}
@@ -109,8 +116,15 @@ export function DocumentsForm({
                   ? { name: existingCV.fileName, path: existingCV.filePath }
                   : null
               }
+              required
+              error={cvError}
+              onUploadComplete={() => {
+                setCvUploaded(true);
+                setCvError("");
+              }}
               onRemove={async () => {
                 await deleteUploadedFile(applicationId, "CV");
+                setCvUploaded(false);
                 toast.success("CV removed");
               }}
             />
@@ -201,7 +215,11 @@ export function DocumentsForm({
         </div>
 
         <div className="flex justify-end pt-4">
-          <ButtonPrimary type="submit" loading={isLoading}>
+          <ButtonPrimary
+            type="submit"
+            loading={isLoading}
+            disabled={!cvUploaded}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save & Continue
           </ButtonPrimary>
