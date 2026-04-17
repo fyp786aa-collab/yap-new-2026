@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-// import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/next";
 import { Roboto } from "next/font/google";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,7 +50,7 @@ export default function RootLayout({
       <body className={`${roboto.variable} font-sans antialiased`}>
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
         <Toaster position="top-right" richColors duration={4000} />
-        {/* <Analytics /> */}
+        <Analytics />
       </body>
     </html>
   );
