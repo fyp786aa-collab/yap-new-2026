@@ -2,7 +2,7 @@ export const APP_NAME = "Young Ambassador Programme 2026";
 export const APP_SHORT_NAME = "YAP 2026";
 export const SUPPORT_EMAIL = "yap.ysb@akcpk.org";
 export const COHORT_YEAR = 2026;
-export const APPLICATION_DEADLINE = "18th April";
+export const APPLICATION_DEADLINE = "18th April 10 PM PKT";
 
 export const GENDER_OPTIONS = [
   { value: "Male", label: "Male" },
