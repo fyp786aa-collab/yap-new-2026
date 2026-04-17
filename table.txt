@@ -21,7 +21,7 @@ CREATE TABLE applicants (
     full_name VARCHAR(150) NOT NULL,
     father_name VARCHAR(150) NOT NULL,
     gender VARCHAR(10) NOT NULL
-        CHECK (gender IN ('Male','Female','Other')),
+        CHECK (gender IN ('Male','Female')),
     date_of_birth DATE NOT NULL,
     cnic VARCHAR(15) UNIQUE NOT NULL,
     primary_contact VARCHAR(20) NOT NULL,

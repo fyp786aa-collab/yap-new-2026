@@ -152,7 +152,7 @@ ORDER BY a.created_at ASC;
 
       const result = await sendEmail(
         recipient.email,
-        "Reminder: Complete & Submit Your YAP 2026 Application by 11 April 2026",
+        "YAP Application Just Got Easier – Deadline Extended to 18 April, 10:00 PM",
         draftApplicationReminderTemplate(name),
         { from: senderFrom },
       );
